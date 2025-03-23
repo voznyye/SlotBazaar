@@ -1,0 +1,2 @@
+# SlotBazaar
+Casino Aggregator
