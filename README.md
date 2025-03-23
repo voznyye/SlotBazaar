@@ -1,2 +1,2 @@
 # SlotBazaar
-Casino Aggregator
+Casino Provider
