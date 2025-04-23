@@ -1,0 +1,2 @@
+# SlotBazaar
+Game Provider

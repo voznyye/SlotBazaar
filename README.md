@@ -1,2 +1,0 @@
-# SlotBazaar
-Casino Provider
