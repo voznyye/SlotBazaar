@@ -6,3 +6,4 @@ python-dotenv
 pydantic
 fastapi-jwt-auth
 alembic
+pytest

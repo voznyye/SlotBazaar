@@ -23,7 +23,11 @@ def calculate_hand_value(hand: List[str]) -> int:
         num_aces -= 1
     return value
 
-def play_simplified_blackjack(bet_amount: decimal.Decimal) -> Dict[str, Union[str, List[str], int, decimal.Decimal]]:
+def play_simplified_blackjack(
+    bet_amount: decimal.Decimal,
+    custom_deck: List[str] = None
+) -> Dict[str, Union[str, List[str], int, decimal.Decimal]]:
+
     """
     Simulates a VERY simplified Blackjack hand focusing on payout rules.
     NOTE: This does NOT implement player/dealer strategy (Hit/Stand decisions).
@@ -41,8 +45,11 @@ def play_simplified_blackjack(bet_amount: decimal.Decimal) -> Dict[str, Union[st
 
     # --- Deal Initial Hands ---
     # Simplified dealing - does not affect probabilities much for single hand vs fresh deck
-    current_deck = DECK[:] # Make a copy
-    secrets.SystemRandom().shuffle(current_deck) # Shuffle securely
+    if custom_deck is not None:
+        current_deck = custom_deck[:]  # Использовать кастомную колоду
+    else:
+        current_deck = DECK[:]
+        secrets.SystemRandom().shuffle(current_deck)
 
     player_hand = [current_deck.pop(), current_deck.pop()]
     dealer_hand = [current_deck.pop(), current_deck.pop()]

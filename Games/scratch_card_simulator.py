@@ -1,5 +1,6 @@
 # scratch_card_game.py
 import secrets
+import random
 import decimal
 from typing import Dict, Union, List
 
@@ -19,7 +20,7 @@ PRIZE_DISTRIBUTION = {
     decimal.Decimal('20'): 0.005,   # Win 19x
 }
 
-# Prepare lists for secrets.choices()
+# Prepare lists for random.choices()
 PAYOUT_RATES = list(PRIZE_DISTRIBUTION.keys())
 PROBABILITIES = list(PRIZE_DISTRIBUTION.values())
 
@@ -45,9 +46,9 @@ def play_scratch_card(bet_amount: decimal.Decimal = CARD_COST) -> Dict[str, Unio
         raise ValueError("Bet amount must be a positive Decimal.")
 
 
-    # secrets.choices returns a list, get the first element
+    # random.choices returns a list, get the first element
     # Weights are automatically used by the function
-    chosen_payout_rate = secrets.choices(PAYOUT_RATES, weights=PROBABILITIES, k=1)[0]
+    chosen_payout_rate = random.choices(PAYOUT_RATES, weights=PROBABILITIES, k=1)[0]
 
     winnings = bet_amount * chosen_payout_rate # Winnings based on card cost * prize multiplier
     net_win_loss = winnings - bet_amount
