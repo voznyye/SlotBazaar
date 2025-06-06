@@ -7,11 +7,11 @@ from coin_flip import play_coin_flip
 
 @pytest.fixture(autouse=True)
 def set_decimal_precision():
-    # Настроим точность Decimal, чтобы результаты были предсказуемые
+    # Set Decimal precision to make results predictable
     decimal.getcontext().prec = 10
 
 def test_coin_flip_win(monkeypatch):
-    # Принудительно заставим исход быть Heads, чтобы проверить выигрыш
+    # Force the outcome to be Heads to test a win
     monkeypatch.setattr('coin_flip.secrets.choice', lambda choices: 'Heads')
     bet = decimal.Decimal('10.00')
     result = play_coin_flip(bet, 'Heads')

@@ -1,52 +1,77 @@
 import pytest
-from fastapi.testclient import TestClient
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from app.main import app
 
-client = TestClient(app)
 
-def test_register_user():
+def test_register_user(client):
     response = client.post("/auth/register", json={
-        "username": "testuser",
-        "password": "testpass"
+        "username": "newuser",
+        "email": "newuser@example.com",
+        "password": "testpass123"
     })
     assert response.status_code == 200
-    assert response.json() == {"msg": "User registered"}
+    data = response.json()
+    assert data["username"] == "newuser"
+    assert data["email"] == "newuser@example.com"
+    assert "id" in data
+    assert "balance" in data
+    assert data["is_active"] is True
 
-def test_register_existing_user():
-    # Register user first
-    client.post("/auth/register", json={
-        "username": "testuser2",
-        "password": "testpass"
-    })
-    # Try to register same user again
+
+def test_register_existing_user(client, test_user):
+    # Try to register user with existing username
     response = client.post("/auth/register", json={
-        "username": "testuser2",
-        "password": "testpass"
+        "username": "testuser",  # This username already exists from test_user fixture
+        "email": "different@example.com",
+        "password": "testpass123"
     })
     assert response.status_code == 400
-    assert response.json()["detail"] == "User exists"
+    assert "already exists" in response.json()["detail"].lower()
 
-def test_login_valid_user():
-    # Register user first
-    client.post("/auth/register", json={
-        "username": "loginuser",
-        "password": "loginpass"
-    })
+
+def test_login_valid_user(client, test_user):
     # Login with valid credentials
     response = client.post("/auth/login", json={
-        "username": "loginuser",
-        "password": "loginpass"
+        "username": "testuser",
+        "password": "testpassword"
     })
     assert response.status_code == 200
-    assert response.json() == {"msg": "Login successful", "username": "loginuser"}
+    data = response.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
+    assert "user" in data
+    assert data["user"]["username"] == "testuser"
 
-def test_login_invalid_user():
+
+def test_login_invalid_user(client):
     response = client.post("/auth/login", json={
         "username": "nonexistent",
         "password": "wrongpass"
     })
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid credentials"
+    assert "incorrect username or password" in response.json()["detail"].lower()
+
+
+def test_get_current_user(authenticated_client):
+    response = authenticated_client.get("/auth/me")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["username"] == "testuser"
+    assert "balance" in data
+    assert "id" in data
+
+
+def test_deposit_money(authenticated_client):
+    response = authenticated_client.post("/auth/deposit", json={
+        "amount": "50.00"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert "balance" in data
+    assert "transaction_id" in data
+    assert "message" in data
+
+
+def test_get_balance(authenticated_client):
+    response = authenticated_client.get("/auth/balance")
+    assert response.status_code == 200
+    data = response.json()
+    assert "balance" in data

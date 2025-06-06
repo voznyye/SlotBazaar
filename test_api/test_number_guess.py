@@ -1,14 +1,7 @@
 import pytest
-from fastapi.testclient import TestClient
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from app.main import app
 
-client = TestClient(app)
-
-def test_number_guess_valid_request():
-    response = client.post("/guess/play", json={
+def test_number_guess_valid_request(client):
+    response = client.post("/games/guess/play", json={
         "bet_amount": 10.0,
         "guess": 5
     })
@@ -21,9 +14,9 @@ def test_number_guess_valid_request():
     assert "winnings" in data
     assert "net_win_loss" in data
 
-def test_number_guess_all_valid_numbers():
+def test_number_guess_all_valid_numbers(client):
     for guess in range(1, 11):
-        response = client.post("/guess/play", json={
+        response = client.post("/games/guess/play", json={
             "bet_amount": 5.0,
             "guess": guess
         })
@@ -31,22 +24,25 @@ def test_number_guess_all_valid_numbers():
         data = response.json()
         assert data["choice"] == guess
 
-def test_number_guess_invalid_number_low():
-    response = client.post("/guess/play", json={
+
+def test_number_guess_invalid_number_low(client):
+    response = client.post("/games/guess/play", json={
         "bet_amount": 10.0,
         "guess": 0
     })
     assert response.status_code == 400
 
-def test_number_guess_invalid_number_high():
-    response = client.post("/guess/play", json={
+
+def test_number_guess_invalid_number_high(client):
+    response = client.post("/games/guess/play", json={
         "bet_amount": 10.0,
         "guess": 11
     })
     assert response.status_code == 400
 
-def test_number_guess_negative_bet():
-    response = client.post("/guess/play", json={
+
+def test_number_guess_negative_bet(client):
+    response = client.post("/games/guess/play", json={
         "bet_amount": -5.0,
         "guess": 5
     })

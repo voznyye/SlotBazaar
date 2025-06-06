@@ -10,7 +10,7 @@ def set_decimal_precision():
     decimal.getcontext().prec = 10
 
 def test_wheel_of_fortune_segment(monkeypatch):
-    # Принудительно зададим winning_segment = 9 (randbelow → 9)
+    # Force set winning_segment = 9 (randbelow → 9)
     monkeypatch.setattr('wheel_of_fortune.secrets.randbelow', lambda n: 9)
     bet = decimal.Decimal('3.00')
     result = play_wheel_of_fortune(bet)

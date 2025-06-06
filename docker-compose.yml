@@ -1,23 +1,51 @@
 version: '3.8'
 
 services:
-  # FastAPI Application
+  # FastAPI Application with SQLite (default)
   app:
     build: .
     container_name: slotbazaar_app
     env_file:
       - .env
     ports:
-      - "8000:8000"
+      - "8003:8000"
     volumes:
       - .:/app
     command: >
       sh -c "
+        echo 'Creating database tables...' &&
+        python -c 'from app.db import engine; from app.models.base import Base; Base.metadata.create_all(bind=engine)' &&
+        echo 'Starting application...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "
+
+  # FastAPI Application with PostgreSQL
+  app-postgres:
+    build: .
+    container_name: slotbazaar_app_postgres
+    environment:
+      - DATABASE_URL=postgresql://slotbazaar_user:slotbazaar_password@db:5432/slotbazaar
+      - JWT_SECRET_KEY=slotbazaar-postgres-secret-key-2024
+      - DEBUG=True
+      - ENVIRONMENT=production
+    ports:
+      - "8004:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        python -c 'import time; time.sleep(10)' &&
         echo 'Running migrations...' &&
         alembic upgrade head &&
         echo 'Starting application...' &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
+    profiles:
+      - postgres
 
   # Development setup with local PostgreSQL (optional)
   app-dev:
@@ -28,7 +56,7 @@ services:
       - JWT_SECRET_KEY=dev-secret-key
       - DEBUG=True
     ports:
-      - "8001:8000"
+      - "8002:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -57,14 +85,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"  # Используем 5433 чтобы не конфликтовать с локальным PostgreSQL
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U slotbazaar_user -d slotbazaar"]
       interval: 10s
       timeout: 5s
       retries: 5
     profiles:
-      - dev
+      - postgres
 
   # Database admin interface
   adminer:
@@ -75,7 +103,7 @@ services:
     depends_on:
       - db
     profiles:
-      - dev
+      - postgres
 
 volumes:
   postgres_data:

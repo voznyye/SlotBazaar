@@ -1,23 +1,31 @@
 import pytest
-from fastapi.testclient import TestClient
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from app.main import app
 
-client = TestClient(app)
 
-def test_read_root():
+def test_read_root(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Welcome to SlotBazaar API"}
+    data = response.json()
+    assert data["message"] == "Welcome to SlotBazaar API"
+    assert data["version"] == "2.0.0"
+    assert "features" in data
+    assert data["docs"] == "/docs"
 
-def test_docs_endpoint():
+
+def test_health_check(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "healthy"
+    assert data["service"] == "SlotBazaar API"
+
+
+def test_docs_endpoint(client):
     response = client.get("/docs")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
 
-def test_openapi_endpoint():
+
+def test_openapi_endpoint(client):
     response = client.get("/openapi.json")
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/json"

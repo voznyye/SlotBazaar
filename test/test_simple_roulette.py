@@ -10,7 +10,7 @@ def set_decimal_precision():
     decimal.getcontext().prec = 10
 
 def test_roulette_red_win(monkeypatch):
-    # Принудительно вернём число 5 (красное)
+    # Force return number 5 (red)
     monkeypatch.setattr('simple_roulette.secrets.randbelow', lambda n: 5)
     bet = decimal.Decimal('10.00')
     result = play_simple_roulette_redblack(bet, 'Red')

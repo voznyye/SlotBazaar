@@ -17,7 +17,7 @@ def test_spin_reels_length():
         assert symbol in SYMBOLS
 
 def test_slot_win(monkeypatch):
-    # Принудительно вернём комбинацию ('C','C','C')
+    # Force return combination ('C','C','C')
     monkeypatch.setattr('reel_slot.secrets.choice', lambda symbols: 'C')
     bet = decimal.Decimal('0.50')
     result = play_simple_slot(bet)

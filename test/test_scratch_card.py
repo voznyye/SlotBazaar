@@ -10,15 +10,15 @@ def set_decimal_precision():
     decimal.getcontext().prec = 10
 
 def test_scratch_card_fixed_cost():
-    # Если передать непраивльную ставку, должно выкинуть ошибку
+    # If an incorrect bet is passed, it should throw an error
     with pytest.raises(ValueError):
         play_scratch_card(decimal.Decimal('2.00'))
 
 def test_scratch_card_valid(monkeypatch):
-    # Принудительно вернём определённый payout_rate, например 5 (умножается на 1.00)
+    # Force return a specific payout_rate, e.g. 5 (multiplied by 1.00)
     monkeypatch.setattr('scratch_card_simulator.random.choices',
                         lambda rates, weights, k: [decimal.Decimal('5')])
-    result = play_scratch_card()  # bet_amount по умолчанию = CARD_COST
+    result = play_scratch_card()  # bet_amount defaults to CARD_COST
     assert result['game'] == 'Scratch Card Simulator'
     assert result['bet'] == CARD_COST
     assert result['revealed_payout_rate'] == decimal.Decimal('5')

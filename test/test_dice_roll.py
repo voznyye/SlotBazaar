@@ -10,8 +10,8 @@ def set_decimal_precision():
     decimal.getcontext().prec = 10
 
 def test_dice_roll_win(monkeypatch):
-    # Заставим выпадение быть 3
-    monkeypatch.setattr('dice_roll.secrets.randbelow', lambda n: 2)  # MIN_NUMBER=1, randbelow(6)→2 даёт 1+2=3
+    # Force the dice roll to be 3
+    monkeypatch.setattr('dice_roll.secrets.randbelow', lambda n: 2)  # MIN_NUMBER=1, randbelow(6)→2 gives 1+2=3
     bet = decimal.Decimal('5.00')
     result = play_dice_roll_number(bet, 3)
     assert result['game'] == 'Dice Roll (Bet on Number)'

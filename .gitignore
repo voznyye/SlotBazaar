@@ -40,6 +40,10 @@ venv.bak/
 .env.local
 .env.production
 .env.test
+.env.docker
+.env.postgres
+.env.supabase
+.env.development
 
 # Database
 *.db

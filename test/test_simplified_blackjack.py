@@ -10,12 +10,12 @@ def set_decimal_precision():
     decimal.getcontext().prec = 10
 
 def test_calculate_hand_value_ace():
-    # Проверим, что туз превратится из 11 в 1 при необходимости
-    hand = ['A', 'K', '5']  # 11 + 10 + 5 = 26 → туз считается за 1 → 16
+    # Check that ace converts from 11 to 1 when necessary
+    hand = ['A', 'K', '5']  # 11 + 10 + 5 = 26 → ace counts as 1 → 16
     assert calculate_hand_value(hand) == 16
 
 def test_blackjack_win():
-    # Игрок: K, A; Дилер: 3, 5
+    # Player: K, A; Dealer: 3, 5
     deck = ['2'] * 48 + ['5', '3', 'A', 'K']  # pop() с конца → K, A, 3, 5
     bet = decimal.Decimal('20.00')
     result = play_simplified_blackjack(bet, custom_deck=deck)

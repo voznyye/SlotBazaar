@@ -1,14 +1,8 @@
 import pytest
-from fastapi.testclient import TestClient
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from app.main import app
 
-client = TestClient(app)
 
-def test_high_low_card_high():
-    response = client.post("/highlow/play", json={
+def test_high_low_card_high(client):
+    response = client.post("/games/highlow/play", json={
         "bet_amount": 10.0,
         "choice": "High"
     })
@@ -23,8 +17,9 @@ def test_high_low_card_high():
     assert "winnings" in data
     assert "net_win_loss" in data
 
-def test_high_low_card_low():
-    response = client.post("/highlow/play", json={
+
+def test_high_low_card_low(client):
+    response = client.post("/games/highlow/play", json={
         "bet_amount": 5.0,
         "choice": "Low"
     })
@@ -33,15 +28,17 @@ def test_high_low_card_low():
     assert data["choice"] == "Low"
     assert data["bet"] == 5.0
 
-def test_high_low_card_invalid_choice():
-    response = client.post("/highlow/play", json={
+
+def test_high_low_card_invalid_choice(client):
+    response = client.post("/games/highlow/play", json={
         "bet_amount": 10.0,
         "choice": "Middle"
     })
     assert response.status_code == 400
 
-def test_high_low_card_negative_bet():
-    response = client.post("/highlow/play", json={
+
+def test_high_low_card_negative_bet(client):
+    response = client.post("/games/highlow/play", json={
         "bet_amount": -10.0,
         "choice": "High"
     })

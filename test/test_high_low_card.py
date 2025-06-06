@@ -13,7 +13,7 @@ def fake_card(rank, value):
     return {'rank': rank, 'value': value}
 
 def test_high_low_card_low_win(monkeypatch):
-    # Принудительно вернём карту со значением 5 (низкая)
+    # Force return a card with value 5 (low)
     monkeypatch.setattr('high_low_card.get_random_card', lambda: fake_card('5', 5))
     bet = decimal.Decimal('10.00')
     result = play_high_low_card(bet, 'Low')
