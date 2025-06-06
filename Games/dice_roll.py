@@ -25,16 +25,16 @@ def play_dice_roll_number(bet_amount: decimal.Decimal, chosen_number: int) -> Di
     if not isinstance(bet_amount, decimal.Decimal) or bet_amount <= 0:
         raise ValueError("Bet amount must be a positive Decimal.")
 
-    # Generate secure random integer between MIN_NUMBER and MAX_NUMBER inclusive
+    # Generate random dice roll
     range_size = MAX_NUMBER - MIN_NUMBER + 1
     outcome = MIN_NUMBER + secrets.randbelow(range_size)
 
     if outcome == chosen_number:
-        # Win
+        # Player wins
         winnings = bet_amount * WIN_PAYOUT_RATE
         net_win_loss = winnings - bet_amount
     else:
-        # Loss
+        # Player loses
         winnings = decimal.Decimal('0')
         net_win_loss = -bet_amount
 

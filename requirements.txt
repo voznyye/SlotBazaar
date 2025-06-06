@@ -7,3 +7,4 @@ pydantic
 fastapi-jwt-auth
 alembic
 pytest
+httpx

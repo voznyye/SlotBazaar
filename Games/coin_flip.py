@@ -27,11 +27,11 @@ def play_coin_flip(bet_amount: decimal.Decimal, choice: str) -> Dict[str, Union[
     outcome = secrets.choice(CHOICES)
 
     if outcome == choice:
-        # Win
+        # Player wins
         winnings = bet_amount * WIN_PAYOUT_RATE
         net_win_loss = winnings - bet_amount
     else:
-        # Loss
+        # Player loses
         winnings = decimal.Decimal('0')
         net_win_loss = -bet_amount
 
@@ -41,7 +41,7 @@ def play_coin_flip(bet_amount: decimal.Decimal, choice: str) -> Dict[str, Union[
         'outcome': outcome,
         'bet': bet_amount,
         'payout_rate_on_win': WIN_PAYOUT_RATE,
-        'winnings': winnings.quantize(decimal.Decimal('0.00')), # Standard currency precision
+        'winnings': winnings.quantize(decimal.Decimal('0.00')), # Currency precision
         'net_win_loss': net_win_loss.quantize(decimal.Decimal('0.00'))
     }
 

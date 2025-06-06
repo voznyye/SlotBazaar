@@ -10,16 +10,16 @@ HIGH_PAYOUT_RATE = decimal.Decimal('1.78') # Payout for betting High (8-A)
 CHOICES = ['Low', 'High']
 
 # Card ranks (Ace high)
-RANKS = list(range(2, 11)) + ['J', 'Q', 'K', 'A'] # Ranks 2-10, J, Q, K, A
+RANKS = [str(r) for r in range(2, 11)] + ['J', 'Q', 'K', 'A'] # All card ranks
 RANK_VALUES = {str(r): r for r in range(2, 11)}
 RANK_VALUES.update({'J': 11, 'Q': 12, 'K': 13, 'A': 14})
 
-LOW_THRESHOLD = 7 # Cards 2-7 are Low
-HIGH_THRESHOLD = 8 # Cards 8-A are High
+LOW_THRESHOLD = 7 # Low range: 2-7
+HIGH_THRESHOLD = 8 # High range: 8-A
 
 def get_random_card() -> Dict[str, Union[str, int]]:
     """Selects a random card rank."""
-    # Simplified: only rank matters for this game version
+    # Only rank matters in this version
     rank = secrets.choice(RANKS)
     value = RANK_VALUES[rank]
     return {'rank': rank, 'value': value}

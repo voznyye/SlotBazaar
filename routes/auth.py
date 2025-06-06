@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi_jwt_auth import AuthJWT
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -18,8 +17,7 @@ def register(user: User):
     return {"msg": "User registered"}
 
 @router.post("/login")
-def login(user: User, Authorize: AuthJWT = Depends()):
+def login(user: User):
     if users.get(user.username) != user.password:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = Authorize.create_access_token(subject=user.username)
-    return {"access_token": token}
+    return {"msg": "Login successful", "username": user.username}

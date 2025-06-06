@@ -17,7 +17,7 @@ PAYTABLE = {
 
 def spin_reels(num_reels: int, symbols: list) -> Tuple[str, ...]:
     """Generates random symbols for each reel."""
-    # Assumes equal probability for each symbol on each reel (1/3)
+    # Equal probability for each symbol
     return tuple(secrets.choice(symbols) for _ in range(num_reels))
 
 def play_simple_slot(bet_amount: decimal.Decimal) -> Dict[str, Union[str, Tuple[str,...], decimal.Decimal]]:
