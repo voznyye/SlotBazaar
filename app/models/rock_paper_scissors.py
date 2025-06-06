@@ -1,14 +1,14 @@
-from sqlalchemy import Column, Integer, String, DateTime, Numeric
+from sqlalchemy import Column, Integer, String, Numeric, DateTime
 from sqlalchemy.sql import func
-from .db import Base
+from .base import Base
 
-class CoinFlipResult(Base):
-    __tablename__ = "coin_flips"
-
+class RPSResult(Base):
+    tablename = "rock_paper_scissors_results"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, nullable=False)
-    choice = Column(String, nullable=False)
-    outcome = Column(String, nullable=False)
+    user_choice = Column(String, nullable=False)  # 'Rock', 'Paper', 'Scissors'
+    computer_choice = Column(String, nullable=False)
+    result = Column(String, nullable=False)  # 'Win', 'Lose', 'Draw'
     bet = Column(Numeric(10, 2), nullable=False)
     winnings = Column(Numeric(10, 2), nullable=False)
     net_win_loss = Column(Numeric(10, 2), nullable=False)
