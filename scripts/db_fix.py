@@ -23,8 +23,13 @@ load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 if not DATABASE_URL:
-    logger.error('DATABASE_URL not found in environment variables')
-    sys.exit(1)
+    # Попробуем получить из аргументов командной строки
+    if len(sys.argv) > 1:
+        DATABASE_URL = sys.argv[1]
+    else:
+        logger.error('DATABASE_URL not found in environment variables or command line arguments')
+        logger.info('Usage: python db_fix.py [DATABASE_URL]')
+        sys.exit(1)
 
 try:
     # Подключаемся к базе данных
