@@ -12,7 +12,7 @@ CHOICES = ['Low', 'High']
 # Card ranks (Ace high)
 RANKS = [str(r) for r in range(2, 11)] + ['J', 'Q', 'K', 'A'] # All card ranks
 RANK_VALUES = {str(r): r for r in range(2, 11)}
-RANK_VALUES.update({'J': 11, 'Q': 12, 'K': 13, 'A': 14})
+RANK_VALUES.update({'J': 11, 'Q': 12, 'K': 13, 'A': 13}) # Changed Ace value from 14 to 13
 
 LOW_THRESHOLD = 7 # Low range: 2-7
 HIGH_THRESHOLD = 8 # High range: 8-A
