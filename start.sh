@@ -1,24 +1,38 @@
 #!/bin/bash
+set -e
 
-# КРИТИЧЕСКАЯ СИТУАЦИЯ: ПРИНУДИТЕЛЬНЫЙ СБРОС БАЗЫ ДАННЫХ
-echo "EMERGENCY DATABASE RESET IN PROGRESS..."
-echo "This will delete all data and recreate the database schema!"
+echo "Starting application initialization..."
 
-# Принудительно выполняем скрипт сброса базы данных (--force пропускает подтверждение)
-python scripts/reset_database.py --force
+# Проверка соединения с базой данных
+echo "Checking database connection..."
+DB_CHECK_RESULT=0
+python test_db_connection.py || DB_CHECK_RESULT=$?
 
-# Если по какой-то причине скрипт сброса не сработал, пробуем другие методы
-if [ $? -ne 0 ]; then
-    echo "Emergency reset failed, trying alternative methods..."
+if [ $DB_CHECK_RESULT -ne 0 ]; then
+    echo "Database connection check failed (code $DB_CHECK_RESULT)"
     
-    # Пытаемся использовать более простой скрипт создания таблиц
-    python scripts/create_tables.py
-    
-    # Если и это не сработало, пробуем Alembic
-    if [ $? -ne 0 ]; then
-        echo "Direct SQL approach failed, trying migrations..."
-        alembic upgrade heads || echo "All database repair methods failed!"
+    # Только для аварийного восстановления (не для продакшена)
+    if [ "$ENVIRONMENT" != "production" ]; then
+        echo "Not in production mode. Attempting database recovery..."
+        
+        # Применяем миграции alembic
+        echo "Running migrations..."
+        alembic upgrade head || true
+        
+        # Применяем скрипт исправления структуры БД (не очищает данные)
+        echo "Applying database structure fixes..."
+        python scripts/db_fix.py || true
+    else
+        echo "Production mode detected. Skipping invasive recovery methods."
+        echo "Attempting migrations only..."
+        alembic upgrade head || echo "Warning: Migrations failed"
     fi
+else
+    echo "Database connection successful"
+    
+    # Применяем миграции (безопасно для продакшена)
+    echo "Running migrations..."
+    alembic upgrade head
 fi
 
 # Запускаем приложение
