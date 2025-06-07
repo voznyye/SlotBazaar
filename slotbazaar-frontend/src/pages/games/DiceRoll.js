@@ -63,7 +63,7 @@ const DiceRoll = () => {
     setShowAnimation(false);
 
     try {
-      const response = await API.post('/games/dice', {
+      const response = await API.post('/games/dice/play', {
         bet_amount: parseFloat(bet),
         number: parseInt(prediction)
       });
@@ -71,9 +71,7 @@ const DiceRoll = () => {
       setResult(response.data);
       
       // Update balance with the new balance from the response
-      if (response.data.new_balance !== undefined) {
         updateBalance(response.data.new_balance);
-      }
 
       // Show animation after a short delay
       setTimeout(() => {

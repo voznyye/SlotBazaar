@@ -75,7 +75,7 @@ export default function CoinFlip() {
     setError(null);
 
     try {
-      const response = await API.post('/games/coin', {
+      const response = await API.post('/games/coin/flip', {
         bet: parseFloat(bet),
         choice,
       });
@@ -85,13 +85,13 @@ export default function CoinFlip() {
       setGameState('result');
 
       if (response.data.result === 'win') {
-        toast.success(`You won $${response.data.winnings}!`);
+        toast.success(`You won ${response.data.winnings}!`);
       } else {
         toast.info('Better luck next time!');
       }
     } catch (error) {
-      setError(error.response?.data?.detail || 'Something went wrong');
-      toast.error(error.response?.data?.detail || 'Game failed');
+      setError(error.response?.data?.message || 'Something went wrong');
+      toast.error(error.response?.data?.message || 'Game failed');
       setGameState('idle');
     } finally {
       setLoading(false);

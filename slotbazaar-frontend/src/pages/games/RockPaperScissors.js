@@ -39,13 +39,11 @@ const RockPaperScissors = () => {
     setLoading(true);
     setRevealing(true);
     try {
-      const response = await API.post('/games/rps', { bet_amount: bet, choice: selectedChoice });
+      const response = await API.post('/games/rps/play', { bet_amount: bet, choice: selectedChoice });
       setResult(response.data);
       
       // Update balance with the new balance from the response
-      if (response.data.new_balance !== undefined) {
         updateBalance(response.data.new_balance);
-      }
 
       toast.success(response.data.result === 'win' ? 'You won!' : 'Better luck next time!');
     } catch (error) {

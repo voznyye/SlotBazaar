@@ -27,15 +27,13 @@ const ReelSlot = () => {
     setSpinning(true);
     setShowAnimation(false);
     try {
-      const response = await API.post('/games/slot', {
+      const response = await API.post('/games/slot/play', {
         bet_amount: parseFloat(bet)
       });
       setResult(response.data);
       
       // Update balance with the new balance from the response
-      if (response.data.new_balance !== undefined) {
         updateBalance(response.data.new_balance);
-      }
       
       // Show animation after a short delay
       setTimeout(() => {

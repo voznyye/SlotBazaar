@@ -2,10 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Container, Paper, TextField, Button, Typography, Box, CircularProgress } from '@mui/material';
 import { toast } from 'react-toastify';
 import API from '../../api';
-import { useAuth } from '../../contexts/AuthContext';
 
 const WheelOfFortune = () => {
-  const { user, updateBalance } = useAuth();
   const [bet, setBet] = useState('');
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
@@ -31,17 +29,21 @@ const WheelOfFortune = () => {
 
   const drawWheel = () => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 10;
 
+    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw segments
+    const segmentAngle = (2 * Math.PI) / segments.length;
     segments.forEach((segment, index) => {
-      const startAngle = (index * 2 * Math.PI) / segments.length;
-      const endAngle = ((index + 1) * 2 * Math.PI) / segments.length;
+      const startAngle = index * segmentAngle;
+      const endAngle = (index + 1) * segmentAngle;
 
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
@@ -52,14 +54,14 @@ const WheelOfFortune = () => {
       ctx.fill();
       ctx.stroke();
 
-      // Draw text
+      // Draw segment value
       ctx.save();
       ctx.translate(centerX, centerY);
-      ctx.rotate(startAngle + (Math.PI / segments.length));
+      ctx.rotate(startAngle + segmentAngle / 2);
       ctx.textAlign = 'right';
       ctx.fillStyle = '#000';
-      ctx.font = 'bold 16px Arial';
-      ctx.fillText(`${segment.value}x`, radius - 20, 0);
+      ctx.font = 'bold 20px Arial';
+      ctx.fillText(segment.value.toString() + 'x', radius - 20, 5);
       ctx.restore();
     });
 
@@ -76,32 +78,44 @@ const WheelOfFortune = () => {
       toast.error('Please enter a valid bet amount');
       return;
     }
-
-    if (parseFloat(bet) > user.balance) {
-      toast.error('Insufficient balance');
-      return;
-    }
-
     setSpinning(true);
     try {
-      const response = await API.post('/games/wheel', {
+      const response = await API.post('/games/wheel/play', {
         bet_amount: parseFloat(bet)
       });
       setResult(response.data);
-      
-      // Update balance with the new balance from the response
-      if (response.data.new_balance !== undefined) {
-        updateBalance(response.data.new_balance);
-      }
 
-      if (response.data.net_win_loss >= 0) {
-        toast.success(`You won $${response.data.net_win_loss}!`);
-      } else {
-        toast.info('Better luck next time!');
-      }
+      // Animate wheel spin
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      let rotation = 0;
+      const targetRotation = 360 * 5 + (response.data.winning_segment * (360 / segments.length));
+      const duration = 5000; // 5 seconds
+      const startTime = performance.now();
+
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        rotation = targetRotation * progress;
+
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+        drawWheel();
+        ctx.restore();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setSpinning(false);
+          toast.success(`You ${response.data.net_win_loss >= 0 ? 'won' : 'lost'} ${Math.abs(response.data.net_win_loss)} coins!`);
+        }
+      };
+
+      requestAnimationFrame(animate);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to spin');
-    } finally {
       setSpinning(false);
     }
   };
@@ -161,13 +175,10 @@ const WheelOfFortune = () => {
               Payout Rate: {result.payout_rate_on_win}x
             </Typography>
             <Typography>
-              Winnings: ${result.winnings}
+              Winnings: {result.winnings}
             </Typography>
             <Typography>
-              Net Win/Loss: ${result.net_win_loss}
-            </Typography>
-            <Typography>
-              New Balance: ${result.new_balance}
+              Net Win/Loss: {result.net_win_loss}
             </Typography>
           </Box>
         )}
