@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from .base import Base
 
 class RouletteResult(Base):
-    tablename = "roulette_results"
+    __tablename__ = "roulette_results"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, nullable=False)
     bet_color = Column(String, nullable=False)      # 'Red', 'Black', etc.

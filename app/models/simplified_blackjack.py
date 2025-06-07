@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from .base import Base
 
 class BlackjackResult(Base):
-    tablename = "blackjack_results"
+    __tablename__ = "blackjack_results"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, nullable=False)
     player_total = Column(Integer, nullable=False)

@@ -1,24 +1,16 @@
 #!/bin/bash
 
-# КРИТИЧЕСКАЯ СИТУАЦИЯ: ПРИНУДИТЕЛЬНЫЙ СБРОС БАЗЫ ДАННЫХ
-echo "EMERGENCY DATABASE RESET IN PROGRESS..."
-echo "This will delete all data and recreate the database schema!"
+# Безопасное создание таблиц без удаления данных
+echo "Initializing database..."
 
-# Принудительно выполняем скрипт сброса базы данных (--force пропускает подтверждение)
-python scripts/reset_database.py --force
+# Копируем наш скрипт для создания таблиц в продакшн
+# Он проверяет и исправляет модели, а затем создает таблицы, если их нет
+python scripts/fix_models_and_create_tables.py
 
-# Если по какой-то причине скрипт сброса не сработал, пробуем другие методы
+# Если скрипт не сработал, используем миграции
 if [ $? -ne 0 ]; then
-    echo "Emergency reset failed, trying alternative methods..."
-    
-    # Пытаемся использовать более простой скрипт создания таблиц
-    python scripts/create_tables.py
-    
-    # Если и это не сработало, пробуем Alembic
-    if [ $? -ne 0 ]; then
-        echo "Direct SQL approach failed, trying migrations..."
-        alembic upgrade heads || echo "All database repair methods failed!"
-    fi
+    echo "Table creation failed, trying migrations..."
+    alembic upgrade heads || echo "Warning: Database initialization incomplete"
 fi
 
 # Запускаем приложение

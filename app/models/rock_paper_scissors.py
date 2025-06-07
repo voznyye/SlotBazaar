@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from .base import Base
 
 class RPSResult(Base):
-    tablename = "rock_paper_scissors_results"
+    __tablename__ = "rock_paper_scissors_results"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, nullable=False)
     user_choice = Column(String, nullable=False)  # 'Rock', 'Paper', 'Scissors'

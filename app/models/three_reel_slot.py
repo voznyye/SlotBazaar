@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from .base import Base
 
 class SlotResult(Base):
-    tablename = "slot_results"
+    __tablename__ = "slot_results"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, nullable=False)
     reel1 = Column(String, nullable=False)

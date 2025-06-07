@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from .base import Base
 
 class WheelResult(Base):
-    tablename = "wheel_results"
+    __tablename__ = "wheel_results"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, nullable=False)
     segment = Column(String, nullable=False)
