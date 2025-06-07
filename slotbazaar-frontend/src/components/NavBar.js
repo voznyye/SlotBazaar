@@ -360,12 +360,15 @@ const NavBar = () => {
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                     <Avatar
                       alt={user.username}
-                      src="/static/images/avatar/2.jpg"
+                      // Use initial of username instead of an external image
                       sx={{
                         border: '2px solid rgba(0, 255, 255, 0.3)',
                         boxShadow: '0 0 10px rgba(0, 255, 255, 0.2)',
+                        bgcolor: '#00cfcf',
                       }}
-                    />
+                    >
+                      {user.username ? user.username[0].toUpperCase() : 'U'}
+                    </Avatar>
                   </IconButton>
                 </Tooltip>
                 <Menu

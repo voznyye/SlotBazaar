@@ -1,8 +1,14 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+// Check if we're running in Docker (using nginx)
+const isDocker = window.location.hostname !== 'localhost' || window.location.port === '3000';
+
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8003',
+  // When in Docker, use /api prefix for nginx proxy
+  baseURL: isDocker 
+    ? '/api' 
+    : (process.env.REACT_APP_API_URL || 'http://localhost:8003'),
   headers: {
     'Content-Type': 'application/json',
   },
