@@ -39,7 +39,7 @@ const NumberGuess = () => {
     setLoading(true);
     setRevealing(true);
     try {
-      const response = await API.post('/games/guess', { bet_amount: bet, guess });
+      const response = await API.post('/games/guess/play', { bet_amount: bet, guess });
       setResult(response.data);
       
       // Update balance with the new balance from the response

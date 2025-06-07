@@ -84,7 +84,7 @@ const WheelOfFortune = () => {
 
     setSpinning(true);
     try {
-      const response = await API.post('/games/wheel', {
+      const response = await API.post('/games/wheel/play', {
         bet_amount: parseFloat(bet)
       });
       setResult(response.data);

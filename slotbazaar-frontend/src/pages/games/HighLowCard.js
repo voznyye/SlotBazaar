@@ -39,7 +39,7 @@ const HighLowCard = () => {
     setLoading(true);
     setFlipping(true);
     try {
-      const response = await API.post('/games/highlow', { bet_amount: bet, choice: prediction });
+      const response = await API.post('/games/highlow/play', { bet_amount: bet, choice: prediction });
       setResult(response.data);
       
       // Update balance with the new balance from the response

@@ -63,7 +63,7 @@ const DiceRoll = () => {
     setShowAnimation(false);
 
     try {
-      const response = await API.post('/games/dice', {
+      const response = await API.post('/games/dice/play', {
         bet_amount: parseFloat(bet),
         number: parseInt(prediction)
       });

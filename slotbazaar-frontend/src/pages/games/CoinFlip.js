@@ -75,7 +75,7 @@ export default function CoinFlip() {
     setError(null);
 
     try {
-      const response = await API.post('/games/coin', {
+      const response = await API.post('/games/coin/', {
         bet: parseFloat(bet),
         choice,
       });

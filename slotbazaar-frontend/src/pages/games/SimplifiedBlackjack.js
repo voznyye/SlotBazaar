@@ -23,7 +23,7 @@ const SimplifiedBlackjack = () => {
 
     setLoading(true);
     try {
-      const response = await API.post('/games/blackjack', {
+      const response = await API.post('/games/blackjack/play', {
         bet_amount: parseFloat(bet)
       });
       setResult(response.data);

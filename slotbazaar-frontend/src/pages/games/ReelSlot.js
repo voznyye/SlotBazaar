@@ -27,7 +27,7 @@ const ReelSlot = () => {
     setSpinning(true);
     setShowAnimation(false);
     try {
-      const response = await API.post('/games/slot', {
+      const response = await API.post('/games/slot/play', {
         bet_amount: parseFloat(bet)
       });
       setResult(response.data);

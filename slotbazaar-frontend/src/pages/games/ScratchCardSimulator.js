@@ -37,7 +37,7 @@ const ScratchCardSimulator = () => {
     setLoading(true);
     setRevealed(false);
     try {
-      const response = await API.post('/games/scratch', {
+      const response = await API.post('/games/scratch/play', {
         bet_amount: parseFloat(bet)
       });
       setResult(response.data);
