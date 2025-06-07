@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -10,8 +10,9 @@ import {
   useTheme,
   CircularProgress,
   Alert,
+  Fade,
 } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -25,6 +26,7 @@ const GameTemplate = ({
   gameComponent: GameComponent,
   gameEndpoint,
   onGameResult,
+  gameType,
 }) => {
   const theme = useTheme();
   const { user, updateBalance } = useAuth();
@@ -32,6 +34,18 @@ const GameTemplate = ({
   const [loading, setLoading] = useState(false);
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState('');
+  const [lastResult, setLastResult] = useState(null);
+  const [showResult, setShowResult] = useState(false);
+
+  // Reset result display after animation
+  useEffect(() => {
+    if (showResult) {
+      const timer = setTimeout(() => {
+        setShowResult(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showResult]);
 
   const handleBetChange = (e) => {
     const value = e.target.value;
@@ -73,21 +87,52 @@ const GameTemplate = ({
         bet: parseFloat(betAmount),
       });
       
-      setGameState(response.data);
-      updateBalance(response.data.newBalance);
+      const result = response.data;
+      setGameState(result);
+      
+      // Update balance with animation
+      const oldBalance = parseFloat(user.balance || 0);
+      const newBalance = parseFloat(result.newBalance);
+      const difference = newBalance - oldBalance;
+      
+      // Show result animation
+      setLastResult({
+        win: result.win,
+        amount: Math.abs(difference),
+        gameType: gameType,
+      });
+      setShowResult(true);
+      
+      // Update balance in context
+      updateBalance(result.newBalance);
       
       if (onGameResult) {
-        onGameResult(response.data);
+        onGameResult(result);
       }
 
-      if (response.data.win) {
-        toast.success(`You won $${parseFloat(response.data.winAmount || 0).toFixed(2)}!`);
+      // Show appropriate toast message
+      if (result.win) {
+        toast.success(`You won $${parseFloat(result.winAmount || 0).toFixed(2)}!`, {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       } else {
-        toast.info('Better luck next time!');
+        toast.info('Better luck next time!', {
+          position: "top-center",
+          autoClose: 2000,
+        });
       }
     } catch (error) {
-      setError(error.response?.data?.detail || 'An error occurred');
-      toast.error('Game error occurred');
+      const errorMessage = error.response?.data?.detail || 'An error occurred';
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-center",
+        autoClose: 3000,
+      });
     } finally {
       setLoading(false);
     }
@@ -110,8 +155,37 @@ const GameTemplate = ({
                 height: '100%',
                 backgroundColor: 'background.paper',
                 borderRadius: 2,
+                position: 'relative',
               }}
             >
+              <AnimatePresence>
+                {showResult && lastResult && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      zIndex: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="h3"
+                      sx={{
+                        color: lastResult.win ? 'success.main' : 'error.main',
+                        fontWeight: 'bold',
+                        textShadow: '0 0 10px rgba(0,0,0,0.2)',
+                      }}
+                    >
+                      {lastResult.win ? '+' : '-'}${lastResult.amount.toFixed(2)}
+                    </Typography>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <Typography
                 variant="h4"
                 component="h1"
@@ -141,12 +215,19 @@ const GameTemplate = ({
                 <Typography variant="subtitle1" color="text.secondary">
                   Your Balance:
                 </Typography>
-                <Typography
-                  variant="h5"
-                  sx={{ color: 'primary.main', fontWeight: 'bold' }}
+                <motion.div
+                  key={user?.balance}
+                  initial={{ scale: 1 }}
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 0.5 }}
                 >
-                  ${parseFloat(user?.balance || 0).toFixed(2)}
-                </Typography>
+                  <Typography
+                    variant="h5"
+                    sx={{ color: 'primary.main', fontWeight: 'bold' }}
+                  >
+                    ${parseFloat(user?.balance || 0).toFixed(2)}
+                  </Typography>
+                </motion.div>
               </Box>
               <TextField
                 fullWidth
@@ -205,6 +286,7 @@ const GameTemplate = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 minHeight: 400,
+                position: 'relative',
               }}
             >
               {error && (
@@ -216,6 +298,7 @@ const GameTemplate = ({
                 gameState={gameState}
                 loading={loading}
                 onPlay={handlePlay}
+                gameType={gameType}
               />
             </Paper>
           </motion.div>
