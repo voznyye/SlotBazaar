@@ -21,32 +21,31 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Create all tables with all required columns."""
     
+    connection = op.get_bind()
+    
     # Удаляем существующие таблицы, если они есть
-    try:
-        op.drop_table('transactions')
-    except (sa.exc.OperationalError, sa.exc.ProgrammingError):
-        pass
-        
-    try:
-        op.drop_table('game_sessions')
-    except (sa.exc.OperationalError, sa.exc.ProgrammingError):
-        pass
-        
-    try:
-        op.drop_table('users')
-    except (sa.exc.OperationalError, sa.exc.ProgrammingError):
-        pass
+    for table in ['transactions', 'game_sessions', 'users']:
+        try:
+            connection.execute(sa.text(f"DROP TABLE IF EXISTS {table} CASCADE"))
+            connection.commit()
+        except Exception as e:
+            connection.rollback()
+            print(f"Error dropping table {table}: {e}")
     
     # Создаем типы перечислений, если они не существуют
-    try:
-        op.execute("CREATE TYPE transactiontype AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'BET', 'WIN', 'BONUS', 'REFUND')")
-    except (sa.exc.OperationalError, sa.exc.ProgrammingError):
-        pass
-        
-    try:
-        op.execute("CREATE TYPE transactionstatus AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED')")
-    except (sa.exc.OperationalError, sa.exc.ProgrammingError):
-        pass
+    for enum_type, values in [
+        ('transactiontype', "'DEPOSIT', 'WITHDRAWAL', 'BET', 'WIN', 'BONUS', 'REFUND'"),
+        ('transactionstatus', "'PENDING', 'COMPLETED', 'FAILED', 'CANCELLED'")
+    ]:
+        try:
+            connection.execute(sa.text(f"DROP TYPE IF EXISTS {enum_type} CASCADE"))
+            connection.commit()
+            connection.execute(sa.text(f"CREATE TYPE {enum_type} AS ENUM ({values})"))
+            connection.commit()
+        except Exception as e:
+            connection.rollback()
+            print(f"Error creating enum type {enum_type}: {e}")
+            # Если не удалось создать enum, попробуем продолжить без него
     
     # Создаем таблицу пользователей
     op.create_table('users',

@@ -1,11 +1,16 @@
 #!/bin/bash
 
-# Применяем чистую миграцию для создания всех таблиц заново
-echo "Running database recreation migration..."
-alembic upgrade recreate_all_tables || {
-    echo "Recreation migration failed, trying other migrations..."
-    alembic upgrade head || {
-        echo "All migrations failed, using direct SQL approach..."
+# Применяем миграции с улучшенной обработкой ошибок
+echo "Running database migrations..."
+# Сначала попробуем перейти к объединяющей миграции, которая включает все изменения
+alembic upgrade merge_heads || {
+    echo "Merge migration failed, trying individual migrations..."
+    # Если объединение не сработало, попробуем сначала recreate_all_tables
+    alembic upgrade recreate_all_tables || {
+        echo "Recreation migration failed, trying remaining migrations..."
+        # Пытаемся выполнить все миграции
+        alembic upgrade heads || {
+        echo "All migrations failed, using direct SQL approach...""
         
         # Прямое выполнение SQL для создания/обновления схемы
         python -c "
