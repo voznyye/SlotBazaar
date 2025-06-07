@@ -37,13 +37,15 @@ const ScratchCardSimulator = () => {
     setLoading(true);
     setRevealed(false);
     try {
-      const response = await API.post('/games/scratch/play', {
+      const response = await API.post('/games/scratch', {
         bet_amount: parseFloat(bet)
       });
       setResult(response.data);
       
       // Update balance with the new balance from the response
+      if (response.data.new_balance !== undefined) {
         updateBalance(response.data.new_balance);
+      }
 
       toast.success(response.data.result === 'win' ? 'You won!' : 'Better luck next time!');
     } catch (error) {

@@ -23,13 +23,15 @@ const SimplifiedBlackjack = () => {
 
     setLoading(true);
     try {
-      const response = await API.post('/games/blackjack/play', {
+      const response = await API.post('/games/blackjack', {
         bet_amount: parseFloat(bet)
       });
       setResult(response.data);
       
       // Update balance with the new balance from the response
+      if (response.data.new_balance !== undefined) {
         updateBalance(response.data.new_balance);
+      }
 
       toast.success(`You ${response.data.net_win_loss >= 0 ? 'won' : 'lost'} $${Math.abs(response.data.net_win_loss)}!`);
     } catch (error) {
