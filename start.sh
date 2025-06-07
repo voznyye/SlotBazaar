@@ -17,7 +17,7 @@ if [ $DB_CHECK_RESULT -ne 0 ]; then
         
         # Применяем миграции alembic
         echo "Running migrations..."
-        alembic upgrade head || true
+        alembic upgrade heads || true
         
         # Применяем скрипт исправления структуры БД (не очищает данные)
         echo "Applying database structure fixes..."
@@ -25,14 +25,15 @@ if [ $DB_CHECK_RESULT -ne 0 ]; then
     else
         echo "Production mode detected. Skipping invasive recovery methods."
         echo "Attempting migrations only..."
-        alembic upgrade head || echo "Warning: Migrations failed"
+        alembic upgrade heads || echo "Warning: Migrations failed"
     fi
 else
     echo "Database connection successful"
     
     # Применяем миграции (безопасно для продакшена)
     echo "Running migrations..."
-    alembic upgrade head
+    # Используем "heads" вместо "head" для применения всех головных ревизий
+    alembic upgrade heads
 fi
 
 # Запускаем приложение
