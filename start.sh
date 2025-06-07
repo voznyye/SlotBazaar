@@ -10,24 +10,27 @@ python test_db_connection.py || DB_CHECK_RESULT=$?
 
 if [ $DB_CHECK_RESULT -ne 0 ]; then
     echo "Database connection check failed (code $DB_CHECK_RESULT)"
-    
-    # Только для аварийного восстановления (не для продакшена)
-    if [ "$ENVIRONMENT" != "production" ]; then
-        echo "Not in production mode. Attempting database recovery..."
-        
-        # Применяем скрипт исправления структуры БД (не очищает данные)
-        echo "Applying database structure fixes..."
-        python scripts/db_fix.py || true
-    else
-        echo "Production mode detected. Skipping invasive recovery methods."
-    fi
+    echo "Cannot proceed without database connection"
+    exit 1
 else
     echo "Database connection successful"
 fi
 
-# Используем специальный скрипт для исправления проблемы с головными ревизиями Alembic
-echo "Applying Alembic migrations with multi-head fix..."
-python scripts/fix_alembic_heads.py || echo "Warning: Migrations may not have been fully applied"
+# Эта секция применяет миграции безопасным способом
+echo "Applying database migrations..."
+
+# Проверяем, есть ли проблема с несколькими головными ревизиями
+ALEMBIC_ERROR=0
+alembic current 2>/dev/null || ALEMBIC_ERROR=$?
+
+if [ $ALEMBIC_ERROR -ne 0 ]; then
+    echo "Detected issue with Alembic migrations, attempting direct database structure fix..."
+    python scripts/db_fix.py || echo "Warning: Database fix might not be complete"
+else
+    echo "Alembic is configured correctly, applying migrations..."
+    # Пробуем применить миграции, игнорируя ошибки
+    alembic upgrade head || echo "Warning: Some migrations may not have been applied"
+fi
 
 # Запускаем приложение
 echo "Starting application..."
