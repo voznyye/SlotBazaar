@@ -42,31 +42,82 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(login_data: UserLogin, db: Session = Depends(get_db)):
     """Login user and return access token"""
-    user_service = UserService(db)
-    user = user_service.authenticate_user(login_data)
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+    try:
+        user_service = UserService(db)
+        user = user_service.authenticate_user(login_data)
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Update last login - только если колонка существует
+        try:
+            from sqlalchemy.sql import func
+            user.last_login = func.now()
+            db.commit()
+        except Exception as e:
+            # Игнорируем ошибку, если колонки last_login нет
+            db.rollback()
+            print(f"Warning: Could not update last_login: {e}")
+        
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": str(user.id)}, expires_delta=access_token_expires
         )
-    
-    # Update last login
-    from sqlalchemy.sql import func
-    user.last_login = func.now()
-    db.commit()
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": str(user.id)}, expires_delta=access_token_expires
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": UserResponse.model_validate(user)
-    }
+        
+        # Обрабатываем отсутствующие поля
+        user_response = None
+        try:
+            user_response = UserResponse.model_validate(user)
+        except Exception:
+            # Если валидация не удалась, создаем словарь вручную
+            from fastapi.encoders import jsonable_encoder
+            user_dict = jsonable_encoder(user)
+            if "is_verified" not in user_dict:
+                user_dict["is_verified"] = False
+            user_response = user_dict
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": user_response
+        }
+    except Exception as e:
+        # Если возникает ошибка, связанная с отсутствующей колонкой
+        if "column users.is_verified does not exist" in str(e):
+            # Используем альтернативный сервис
+            from app.services.fallback_user_service import FallbackUserService
+            fallback_service = FallbackUserService(db)
+            user = fallback_service.authenticate_user(login_data)
+            
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Incorrect username or password",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = create_access_token(
+                data={"sub": str(user.id)}, expires_delta=access_token_expires
+            )
+            
+            # Добавляем недостающие поля в ответ
+            from fastapi.encoders import jsonable_encoder
+            user_dict = jsonable_encoder(user)
+            user_dict["is_verified"] = False
+            
+            return {
+                "access_token": access_token,
+                "token_type": "bearer",
+                "user": user_dict
+            }
+        else:
+            # Если ошибка не связана с отсутствующей колонкой, пробрасываем дальше
+            raise
 
 @router.get("/me", response_model=UserResponse)
 def get_current_user_info(current_user: User = Depends(get_current_user)):
