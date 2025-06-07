@@ -1,24 +1,17 @@
 #!/bin/bash
 
-# КРИТИЧЕСКАЯ СИТУАЦИЯ: Прямое исправление базы данных
-echo "КРИТИЧЕСКАЯ СИТУАЦИЯ: Принудительное исправление базы данных"
-echo "Это создаст все необходимые таблицы независимо от состояния метаданных"
+# Безопасное создание таблиц без удаления данных
+echo "Initializing database..."
 
-# Отключаем опасные скрипты для безопасности
-if [ -f "scripts/reset_database.py" ]; then
-    echo "ВНИМАНИЕ: Обнаружен скрипт reset_database.py, временно переименовываем его для защиты данных"
-    mv scripts/reset_database.py scripts/reset_database.py.disabled
+# Копируем наш скрипт для создания таблиц в продакшн
+# Он проверяет и исправляет модели, а затем создает таблицы, если их нет
+python scripts/fix_models_and_create_tables.py
+
+# Если скрипт не сработал, используем миграции
+if [ $? -ne 0 ]; then
+    echo "Table creation failed, trying migrations..."
+    alembic upgrade heads || echo "Warning: Database initialization incomplete"
 fi
-
-# Запускаем скрипт исправления базы данных
-echo "Запускаем скрипт исправления базы данных..."
-python scripts/fix_database.py
-
-# Даже после фиксации, пробуем применить миграции для обновления структуры
-echo "Проверка и применение миграций..."
-alembic upgrade heads || {
-    echo "Применение миграций не требуется или не удалось, используем восстановленную структуру"
-}
 
 # Запускаем приложение
 echo "Starting application..."

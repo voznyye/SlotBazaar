@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from .base import Base
 
 class NumberGuessResult(Base):
-    tablename = "number_guess_results"
+    __tablename__ = "number_guess_results"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, nullable=False)

@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from .base import Base
 
 class DiceRollResult(Base):
-    tablename = "dice_rolls"
+    __tablename__ = "dice_rolls"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, nullable=False)
