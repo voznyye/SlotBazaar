@@ -153,7 +153,7 @@ const NavBar = () => {
             {user ? (
               <>
                 <Badge
-                  badgeContent={`$${user.balance?.toFixed(2) || '0.00'}`}
+                  badgeContent={`$${parseFloat(user.balance || 0).toFixed(2)}`}
                   color="primary"
                   sx={{ mr: 2 }}
                 >

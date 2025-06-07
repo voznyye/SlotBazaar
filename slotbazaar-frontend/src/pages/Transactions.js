@@ -236,7 +236,7 @@ const Transactions = () => {
                       transaction.type === TransactionType.GAME_WIN
                         ? '+'
                         : '-'}
-                      ${Math.abs(transaction.amount).toFixed(2)}
+                      ${Math.abs(parseFloat(transaction.amount || 0)).toFixed(2)}
                     </TableCell>
                   </TableRow>
                 ))}

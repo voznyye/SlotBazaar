@@ -28,6 +28,9 @@ const Balance = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Отладка: вывод типа balance в консоль
+  console.log('Balance type:', typeof user?.balance, 'Balance value:', user?.balance);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -68,7 +71,8 @@ const Balance = () => {
       return;
     }
 
-    if (parseFloat(amount) > user.balance) {
+    const currentBalance = parseFloat(user.balance || 0);
+    if (parseFloat(amount) > currentBalance) {
       toast.error('Insufficient balance');
       return;
     }
@@ -120,7 +124,7 @@ const Balance = () => {
                 component="p"
                 sx={{ color: 'primary.main', fontWeight: 'bold' }}
               >
-                ${user?.balance?.toFixed(2) || '0.00'}
+                ${user ? (parseFloat(user.balance || 0).toFixed(2)) : '0.00'}
               </Typography>
             </Paper>
           </motion.div>

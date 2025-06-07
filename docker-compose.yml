@@ -14,7 +14,7 @@ services:
     command: >
       sh -c "
         echo 'Creating database tables...' &&
-        python -c 'from app.db import engine; from app.models.base import Base; Base.metadata.create_all(bind=engine)' &&
+        python -c 'from app.db import engine; from app.models.base import Base; from app.models.user import User; from app.models.game_session import GameSession; from app.models.transaction import Transaction; Base.metadata.create_all(bind=engine)' &&
         echo 'Starting application...' &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000
       "

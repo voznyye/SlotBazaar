@@ -74,7 +74,7 @@ const Dashboard = () => {
   const stats = [
     {
       title: 'Balance',
-      value: `$${user?.balance?.toFixed(2) || '0.00'}`,
+      value: `$${parseFloat(user?.balance || 0).toFixed(2)}`,
       icon: <AccountBalance sx={{ fontSize: 40 }} />,
       color: theme.palette.primary.main,
     },
@@ -92,7 +92,7 @@ const Dashboard = () => {
     },
     {
       title: 'Total Winnings',
-      value: `$${user?.totalWinnings?.toFixed(2) || '0.00'}`,
+      value: `$${parseFloat(user?.totalWinnings || 0).toFixed(2)}`,
       icon: <History sx={{ fontSize: 40 }} />,
       color: theme.palette.warning.main,
     },

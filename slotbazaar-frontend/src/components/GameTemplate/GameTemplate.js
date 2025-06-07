@@ -55,7 +55,8 @@ const GameTemplate = ({
       setError(`Maximum bet is $${maxBet}`);
       return false;
     }
-    if (amount > user.balance) {
+    const currentBalance = parseFloat(user.balance || 0);
+    if (amount > currentBalance) {
       setError('Insufficient balance');
       return false;
     }
@@ -80,7 +81,7 @@ const GameTemplate = ({
       }
 
       if (response.data.win) {
-        toast.success(`You won $${response.data.winAmount.toFixed(2)}!`);
+        toast.success(`You won $${parseFloat(response.data.winAmount || 0).toFixed(2)}!`);
       } else {
         toast.info('Better luck next time!');
       }
@@ -144,7 +145,7 @@ const GameTemplate = ({
                   variant="h5"
                   sx={{ color: 'primary.main', fontWeight: 'bold' }}
                 >
-                  ${user?.balance?.toFixed(2) || '0.00'}
+                  ${parseFloat(user?.balance || 0).toFixed(2)}
                 </Typography>
               </Box>
               <TextField

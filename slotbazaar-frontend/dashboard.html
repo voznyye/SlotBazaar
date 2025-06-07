@@ -2,15 +2,29 @@
 <html lang="en">
 <head>
   <link rel="stylesheet" href="css/variables.css" />
-<link rel="stylesheet" href="css/global.css" />
-<link rel="stylesheet" href="css/components.css" />
-<link rel="stylesheet" href="css/markdown.css" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/markdown.css" />
 
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | SlotBazaar</title>
 </head>
 <body>
-  <header>…</header>
+  <header>
+    <nav class="navbar">
+      <a href="dashboard.html">Home</a>
+      <a href="games/index.html">Games</a>
+      <a href="balance.html">Balance</a>
+      <a href="deposit.html">Deposit</a>
+      <a href="withdraw.html">Withdraw</a>
+      <a href="transactions.html">Transactions</a>
+      <a href="legal/terms.html">Terms</a>
+      <a href="legal/privacy.html">Privacy</a>
+      <a href="legal/faq.html">FAQ</a>
+      <button class="btn btn-danger">Logout</button>
+    </nav>
+  </header>
 
   <main class="container">
     <h1>Welcome to SlotBazaar</h1>
@@ -25,5 +39,8 @@
       </ul>
     </div>
   </main>
+
+  <!-- JavaScript -->
+  <script src="js/main.js"></script>
 </body>
 </html>
