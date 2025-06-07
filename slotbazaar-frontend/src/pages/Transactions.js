@@ -25,7 +25,7 @@ import {
   Casino,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import API from '../api';
 import { format } from 'date-fns';
 
 const TransactionType = {
@@ -74,7 +74,7 @@ const Transactions = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await axios.get('/api/user/transactions');
+      const response = await API.get('/user/transactions');
       setTransactions(response.data);
     } catch (error) {
       console.error('Error fetching transactions:', error);

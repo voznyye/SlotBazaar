@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../api';
 
 const AuthContext = createContext(null);
 
@@ -26,9 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async (token) => {
     try {
-      const response = await axios.get('/api/user/profile', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await API.get('/auth/me');
       setUser(response.data);
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -40,7 +38,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post('/api/auth/login', {
+      const response = await API.post('/auth/login', {
         username,
         password,
       });
@@ -59,7 +57,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      const response = await axios.post('/api/auth/register', {
+      const response = await API.post('/auth/register', {
         username,
         email,
         password,

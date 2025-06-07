@@ -20,7 +20,7 @@ import {
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import API from '../api';
 
 const Balance = () => {
   const theme = useTheme();
@@ -52,7 +52,7 @@ const Balance = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post('/api/user/deposit', {
+      const response = await API.post('/auth/deposit', {
         amount: parseFloat(amount),
       });
       updateBalance(response.data.balance);
@@ -79,7 +79,7 @@ const Balance = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post('/api/user/withdraw', {
+      const response = await API.post('/auth/withdraw', {
         amount: parseFloat(amount),
       });
       updateBalance(response.data.balance);
