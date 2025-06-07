@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """
-Скрипт для прямого создания таблиц в базе данных.
-БЕЗОПАСНЫЙ РЕЖИМ - НЕ УДАЛЯЕТ СУЩЕСТВУЮЩИЕ ТАБЛИЦЫ!
-"""
+СКРИПТ АВАРИЙНОГО ВОССТАНОВЛЕНИЯ ТАБЛИЦ
+Этот скрипт предназначен для восстановления таблиц в продакшен-среде,
+когда они были случайно удалены.
 
-# Флаг для защиты от удаления данных
-SAFE_MODE = True  # НИКОГДА НЕ МЕНЯЙТЕ ЭТОТ ФЛАГ!
+Он НЕ удаляет существующие таблицы, а только создает недостающие.
+"""
 
 import os
 import psycopg2
 from dotenv import load_dotenv
 import sys
 import logging
+import time
 
 # Настройка логирования
 logging.basicConfig(
@@ -19,7 +20,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler(sys.stdout)]
 )
-logger = logging.getLogger('create_tables')
+logger = logging.getLogger('recover_tables')
 
 # Загрузка переменных окружения
 load_dotenv()
@@ -31,22 +32,54 @@ if not DATABASE_URL:
         DATABASE_URL = sys.argv[1]
     else:
         logger.error('DATABASE_URL not found in environment variables or command line arguments')
-        logger.info('Usage: python create_tables.py [DATABASE_URL]')
+        logger.info('Usage: python recover_tables.py [DATABASE_URL]')
         sys.exit(1)
 
-# КРИТИЧЕСКАЯ ПРОВЕРКА РЕЖИМА РАБОТЫ
-if 'reset' in sys.argv[0].lower() or any('reset' in arg.lower() for arg in sys.argv[1:]):
-    logger.error("СТОП! Скрипт с 'reset' в имени или аргументах не может быть запущен! Это защитный механизм.")
-    sys.exit(1)
+# Важное предупреждение
+logger.warning("=" * 80)
+logger.warning("ЭТОТ СКРИПТ ВОССТАНОВИТ ТОЛЬКО СТРУКТУРУ ТАБЛИЦ!")
+logger.warning("ДАННЫЕ, КОТОРЫЕ БЫЛИ УТЕРЯНЫ, НЕ БУДУТ ВОССТАНОВЛЕНЫ!")
+logger.warning("=" * 80)
+time.sleep(2)  # Пауза для чтения предупреждения
 
 try:
     # Подключаемся к базе данных
-    logger.info('Connecting to database in SAFE MODE (no data deletion)...')
+    logger.info('Connecting to database...')
     conn = psycopg2.connect(DATABASE_URL)
     conn.autocommit = True  # Каждая команда будет в отдельной транзакции для безопасности
     cur = conn.cursor()
     
+    # Проверяем существование типов enum
+    logger.info("Checking enum types...")
+    
+    cur.execute("""
+    SELECT typname FROM pg_type WHERE typname='transactiontype'
+    """)
+    
+    if cur.fetchone() is None:
+        logger.info('Creating transaction type enum...')
+        cur.execute("""
+        CREATE TYPE transactiontype AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'BET', 'WIN', 'BONUS', 'REFUND')
+        """)
+        logger.info('Transaction type enum created')
+    else:
+        logger.info('Transaction type enum already exists')
+    
+    cur.execute("""
+    SELECT typname FROM pg_type WHERE typname='transactionstatus'
+    """)
+    
+    if cur.fetchone() is None:
+        logger.info('Creating transaction status enum...')
+        cur.execute("""
+        CREATE TYPE transactionstatus AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED')
+        """)
+        logger.info('Transaction status enum created')
+    else:
+        logger.info('Transaction status enum already exists')
+    
     # Проверяем существование таблицы users
+    logger.info("Checking users table...")
     cur.execute("""
     SELECT table_name FROM information_schema.tables 
     WHERE table_name='users'
@@ -75,62 +108,10 @@ try:
         
         logger.info('Users table created')
     else:
-        logger.info('Users table exists, checking columns...')
-        
-        # Проверяем наличие колонки is_verified
-        cur.execute("""
-        SELECT column_name FROM information_schema.columns 
-        WHERE table_name='users' AND column_name='is_verified'
-        """)
-        
-        if cur.fetchone() is None:
-            logger.info('Adding is_verified column...')
-            cur.execute("ALTER TABLE users ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT false")
-            logger.info('is_verified column added')
-        else:
-            logger.info('is_verified column already exists')
-        
-        # Проверяем наличие колонки last_login
-        cur.execute("""
-        SELECT column_name FROM information_schema.columns 
-        WHERE table_name='users' AND column_name='last_login'
-        """)
-        
-        if cur.fetchone() is None:
-            logger.info('Adding last_login column...')
-            cur.execute("ALTER TABLE users ADD COLUMN last_login TIMESTAMP WITH TIME ZONE")
-            logger.info('last_login column added')
-        else:
-            logger.info('last_login column already exists')
-    
-    # Проверяем существование типов enum
-    cur.execute("""
-    SELECT typname FROM pg_type WHERE typname='transactiontype'
-    """)
-    
-    if cur.fetchone() is None:
-        logger.info('Creating transaction type enum...')
-        cur.execute("""
-        CREATE TYPE transactiontype AS ENUM ('DEPOSIT', 'WITHDRAWAL', 'BET', 'WIN', 'BONUS', 'REFUND')
-        """)
-        logger.info('Transaction type enum created')
-    else:
-        logger.info('Transaction type enum already exists')
-    
-    cur.execute("""
-    SELECT typname FROM pg_type WHERE typname='transactionstatus'
-    """)
-    
-    if cur.fetchone() is None:
-        logger.info('Creating transaction status enum...')
-        cur.execute("""
-        CREATE TYPE transactionstatus AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED')
-        """)
-        logger.info('Transaction status enum created')
-    else:
-        logger.info('Transaction status enum already exists')
+        logger.info('Users table already exists')
     
     # Проверяем существование таблицы game_sessions
+    logger.info("Checking game_sessions table...")
     cur.execute("""
     SELECT table_name FROM information_schema.tables 
     WHERE table_name='game_sessions'
@@ -157,22 +138,10 @@ try:
         
         logger.info('Game sessions table created')
     else:
-        logger.info('Game sessions table exists, checking columns...')
-        
-        # Проверяем наличие колонки game_type
-        cur.execute("""
-        SELECT column_name FROM information_schema.columns 
-        WHERE table_name='game_sessions' AND column_name='game_type'
-        """)
-        
-        if cur.fetchone() is None:
-            logger.info('Adding game_type column...')
-            cur.execute("ALTER TABLE game_sessions ADD COLUMN game_type VARCHAR(50) NOT NULL DEFAULT 'unknown'")
-            logger.info('game_type column added')
-        else:
-            logger.info('game_type column already exists')
+        logger.info('Game sessions table already exists')
     
     # Проверяем существование таблицы transactions
+    logger.info("Checking transactions table...")
     cur.execute("""
     SELECT table_name FROM information_schema.tables 
     WHERE table_name='transactions'
@@ -205,13 +174,13 @@ try:
     else:
         logger.info('Transactions table already exists')
     
-    conn.commit()
-    logger.info('Database schema updated successfully')
+    logger.info("=" * 80)
+    logger.info("ВОССТАНОВЛЕНИЕ ТАБЛИЦ ЗАВЕРШЕНО!")
+    logger.info("Все таблицы и индексы были проверены и созданы при необходимости.")
+    logger.info("=" * 80)
     
 except Exception as e:
-    logger.error(f'Error updating database schema: {e}')
-    if 'conn' in locals():
-        conn.rollback()
+    logger.error(f'Error during recovery: {e}')
 finally:
     if 'conn' in locals():
         conn.close()

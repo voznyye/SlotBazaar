@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# ЗАЩИТА ОТ СБРОСА ДАННЫХ
+if [ -f "scripts/reset_database.py" ]; then
+    echo "ВНИМАНИЕ: Обнаружен скрипт reset_database.py, временно переименовываем его для защиты данных"
+    mv scripts/reset_database.py scripts/reset_database.py.disabled
+fi
+
 # Применяем миграции с улучшенной обработкой ошибок
 echo "Running database migrations..."
 # Сначала попробуем перейти к объединяющей миграции, которая включает все изменения
@@ -12,8 +18,9 @@ alembic upgrade merge_heads || {
         alembic upgrade heads || {
             echo "All migrations failed, using direct SQL approach..."
             
-            # Запускаем скрипт для создания таблиц напрямую (без сброса данных)
-            python scripts/create_tables.py
+            # Запускаем безопасный скрипт восстановления таблиц (НЕ УДАЛЯЕТ данные)
+            echo "Запускаем безопасный скрипт восстановления таблиц..."
+            python scripts/recover_tables.py
         }
     }
 }
