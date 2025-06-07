@@ -16,9 +16,28 @@ router = APIRouter()
 @router.post("/register", response_model=UserResponse)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user"""
-    user_service = UserService(db)
-    user = user_service.create_user(user_data)
-    return user
+    try:
+        # Пробуем использовать обычный сервис
+        user_service = UserService(db)
+        user = user_service.create_user(user_data)
+        return user
+    except Exception as e:
+        # Если возникает ошибка, связанная с отсутствующей колонкой
+        if "column users.is_verified does not exist" in str(e):
+            # Используем альтернативный сервис
+            from app.services.fallback_user_service import FallbackUserService
+            fallback_service = FallbackUserService(db)
+            user = fallback_service.create_user(user_data)
+            
+            # Добавляем is_verified для совместимости с моделью ответа
+            from fastapi.encoders import jsonable_encoder
+            user_dict = jsonable_encoder(user)
+            user_dict["is_verified"] = False
+            
+            return user_dict
+        else:
+            # Если ошибка не связана с отсутствующей колонкой, пробрасываем дальше
+            raise
 
 @router.post("/login")
 def login(login_data: UserLogin, db: Session = Depends(get_db)):

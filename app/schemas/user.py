@@ -22,7 +22,7 @@ class UserResponse(UserBase):
     id: int
     balance: Decimal
     is_active: bool
-    is_verified: bool
+    is_verified: Optional[bool] = False  # Делаем поле необязательным
     created_at: datetime
     last_login: Optional[datetime] = None
 
