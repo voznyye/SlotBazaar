@@ -3,7 +3,9 @@ import { toast } from 'react-toastify';
 
 // Create API instance with base URL
 const API = axios.create({
-  baseURL: '/api',  // Always use /api prefix as we're using nginx proxy
+  baseURL: process.env.NODE_ENV === 'production' 
+    ? 'https://slotbazaar-1.onrender.com/api'
+    : '/api',
   headers: {
     'Content-Type': 'application/json',
   },

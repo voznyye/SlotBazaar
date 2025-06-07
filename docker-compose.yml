@@ -8,7 +8,7 @@ services:
     env_file:
       - .env
     ports:
-      - "8003:8000"
+      - "8000:8000"
     volumes:
       - .:/app
     command: >
@@ -94,7 +94,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"  # Используем 5433 чтобы не конфликтовать с локальным PostgreSQL
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U slotbazaar_user -d slotbazaar"]
       interval: 10s

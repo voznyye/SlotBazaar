@@ -1,5 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -36,6 +38,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="slotbazaar-frontend/build/static"), name="static")
+
 # Authentication and User Management
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(user.router, prefix="/user", tags=["User Management"])
@@ -56,18 +61,14 @@ app.include_router(api_router)
 
 @app.get("/", tags=["Root"])
 def read_root():
-    return {
-        "message": "Welcome to SlotBazaar API",
-        "version": "2.0.0",
-        "features": [
-            "User Registration & Authentication",
-            "Balance Management",
-            "10+ Casino Games",
-            "Transaction History",
-            "Game Statistics"
-        ],
-        "docs": "/docs"
-    }
+    return FileResponse("slotbazaar-frontend/build/index.html")
+
+@app.get("/{path:path}", tags=["Frontend"])
+def serve_frontend(path: str):
+    # Serve index.html for all routes that don't match API or static files
+    if not path.startswith(("api/", "static/", "docs", "redoc")):
+        return FileResponse("slotbazaar-frontend/build/index.html")
+    return {"detail": "Not found"}
 
 @app.get("/health", tags=["Health"])
 def health_check():
