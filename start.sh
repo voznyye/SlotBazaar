@@ -16,20 +16,92 @@ else
     echo "Database connection successful"
 fi
 
-# Эта секция применяет миграции безопасным способом
-echo "Applying database migrations..."
+# Проверяем наличие таблиц и структуру базы данных
+echo "Checking database structure..."
+TABLE_COUNT=$(python -c "
+import os
+import psycopg2
+from dotenv import load_dotenv
+load_dotenv()
+conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+cur = conn.cursor()
+cur.execute(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'\")
+count = cur.fetchone()[0]
+print(count)
+conn.close()
+")
 
-# Проверяем, есть ли проблема с несколькими головными ревизиями
-ALEMBIC_ERROR=0
-alembic current 2>/dev/null || ALEMBIC_ERROR=$?
+echo "Found $TABLE_COUNT tables in database"
 
-if [ $ALEMBIC_ERROR -ne 0 ]; then
-    echo "Detected issue with Alembic migrations, attempting direct database structure fix..."
-    python scripts/db_fix.py || echo "Warning: Database fix might not be complete"
-else
-    echo "Alembic is configured correctly, applying migrations..."
-    # Пробуем применить миграции, игнорируя ошибки
-    alembic upgrade head || echo "Warning: Some migrations may not have been applied"
+# Проверяем содержимое alembic_version
+echo "Checking alembic_version table..."
+ALEMBIC_VERSION_COUNT=$(python -c "
+import os
+import psycopg2
+from dotenv import load_dotenv
+load_dotenv()
+try:
+    conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+    cur = conn.cursor()
+    cur.execute(\"SELECT COUNT(*) FROM alembic_version\")
+    count = cur.fetchone()[0]
+    print(count)
+    conn.close()
+except Exception as e:
+    print('0')
+")
+
+echo "Found $ALEMBIC_VERSION_COUNT entries in alembic_version table"
+
+# Сначала попробуем стандартный подход с множественным числом heads
+echo "Attempting to apply Alembic migrations using multiple heads..."
+alembic upgrade heads || echo "Warning: Failed to apply migrations with 'heads'"
+
+# Проверяем таблицы снова
+echo "Checking tables after migration attempt..."
+NEW_TABLE_COUNT=$(python -c "
+import os
+import psycopg2
+from dotenv import load_dotenv
+load_dotenv()
+conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+cur = conn.cursor()
+cur.execute(\"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'\")
+count = cur.fetchone()[0]
+print(count)
+conn.close()
+")
+
+echo "Now found $NEW_TABLE_COUNT tables in database"
+
+# Если alembic_version содержит несколько записей, сбрасываем её
+if [ "$ALEMBIC_VERSION_COUNT" -gt 1 ]; then
+    echo "Multiple entries in alembic_version detected. Attempting to fix..."
+    python scripts/reset_migrations.py || echo "Warning: Failed to reset migrations"
+    
+    # Пробуем применить миграции снова
+    echo "Trying migrations after reset..."
+    alembic upgrade head || echo "Warning: Failed to apply migrations after reset"
+fi
+
+# Если таблиц всё ещё недостаточно, создаем их напрямую
+if [ "$NEW_TABLE_COUNT" -lt 4 ]; then
+    echo "Still missing tables. Creating tables directly with SQLAlchemy..."
+    python -c "
+    from app.db import engine
+    from app.models.base import Base
+    from app.models.user import User
+    from app.models.transaction import Transaction
+    from app.models.game_session import GameSession
+    
+    # Создаем все таблицы напрямую
+    Base.metadata.create_all(bind=engine)
+    print('Tables created with SQLAlchemy')
+    "
+    
+    # Обновляем таблицу alembic_version с последней миграцией
+    echo "Updating alembic_version table with latest migration..."
+    python scripts/update_alembic_version.py || echo "Warning: Failed to update alembic_version"
 fi
 
 # Запускаем приложение
