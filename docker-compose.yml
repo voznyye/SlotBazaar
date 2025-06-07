@@ -18,6 +18,15 @@ services:
         echo 'Starting application...' &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
+      
+  # Frontend React application
+  frontend:
+    build: ./slotbazaar-frontend
+    container_name: slotbazaar_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
 
   # FastAPI Application with PostgreSQL
   app-postgres:
