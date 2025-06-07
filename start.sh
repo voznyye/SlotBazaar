@@ -15,26 +15,19 @@ if [ $DB_CHECK_RESULT -ne 0 ]; then
     if [ "$ENVIRONMENT" != "production" ]; then
         echo "Not in production mode. Attempting database recovery..."
         
-        # Применяем миграции alembic
-        echo "Running migrations..."
-        alembic upgrade heads || true
-        
         # Применяем скрипт исправления структуры БД (не очищает данные)
         echo "Applying database structure fixes..."
         python scripts/db_fix.py || true
     else
         echo "Production mode detected. Skipping invasive recovery methods."
-        echo "Attempting migrations only..."
-        alembic upgrade heads || echo "Warning: Migrations failed"
     fi
 else
     echo "Database connection successful"
-    
-    # Применяем миграции (безопасно для продакшена)
-    echo "Running migrations..."
-    # Используем "heads" вместо "head" для применения всех головных ревизий
-    alembic upgrade heads
 fi
+
+# Используем специальный скрипт для исправления проблемы с головными ревизиями Alembic
+echo "Applying Alembic migrations with multi-head fix..."
+python scripts/fix_alembic_heads.py || echo "Warning: Migrations may not have been fully applied"
 
 # Запускаем приложение
 echo "Starting application..."
