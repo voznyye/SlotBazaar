@@ -8,6 +8,8 @@ import {
   Typography,
   CircularProgress,
   Grid,
+  Container,
+  Paper,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -30,7 +32,7 @@ const RockPaperScissors = () => {
     setLoading(true);
     setRevealing(true);
     try {
-      const response = await API.post('/games/rps/play', { bet, choice: playerChoice });
+      const response = await API.post('/games/rps/play', { bet_amount: bet, choice: playerChoice });
       setResult(response.data);
       toast.success(response.data.result === 'win' ? 'You won!' : 'Better luck next time!');
     } catch (error) {
@@ -43,9 +45,9 @@ const RockPaperScissors = () => {
 
   const getEmoji = (choice) => {
     switch (choice) {
-      case 'rock': return '✊';
-      case 'paper': return '✋';
-      case 'scissors': return '✌️';
+      case 'Rock': return '✊';
+      case 'Paper': return '✋';
+      case 'Scissors': return '✌️';
       default: return '?';
     }
   };
@@ -80,7 +82,7 @@ const RockPaperScissors = () => {
             />
 
             <Grid container spacing={2} sx={{ mb: 3 }}>
-              {['rock', 'paper', 'scissors'].map((option) => (
+              {['Rock', 'Paper', 'Scissors'].map((option) => (
                 <Grid item xs={4} key={option}>
                   <Button
                     fullWidth

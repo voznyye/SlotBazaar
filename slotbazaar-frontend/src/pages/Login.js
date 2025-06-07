@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Box,
@@ -10,6 +10,7 @@ import {
   Paper,
   InputAdornment,
   IconButton,
+  Alert,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,44 +19,29 @@ import { toast } from 'react-toastify';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user, loading } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.username) {
-      newErrors.username = 'Username is required';
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/dashboard');
     }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
-
-    setLoading(true);
+    setError('');
     try {
-      const result = await login(formData.username, formData.password);
-      if (result.success) {
-        toast.success('Login successful!');
-        navigate('/dashboard');
-      } else {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      toast.error('An error occurred during login');
-    } finally {
-      setLoading(false);
+      await login(formData.username, formData.password);
+      toast.success('Login successful!');
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to login');
     }
   };
 
@@ -66,13 +52,14 @@ const Login = () => {
       [name]: value,
     }));
     // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
+    if (error && error.includes(name)) {
+      setError('');
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Container component="main" maxWidth="xs">
@@ -111,6 +98,7 @@ const Login = () => {
             >
               Welcome Back
             </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
               <TextField
                 margin="normal"
@@ -123,8 +111,8 @@ const Login = () => {
                 autoFocus
                 value={formData.username}
                 onChange={handleChange}
-                error={!!errors.username}
-                helperText={errors.username}
+                error={!!error && error.includes('username')}
+                helperText={error && error.includes('username') ? error : ''}
                 sx={{ mb: 2 }}
               />
               <TextField
@@ -138,8 +126,8 @@ const Login = () => {
                 autoComplete="current-password"
                 value={formData.password}
                 onChange={handleChange}
-                error={!!errors.password}
-                helperText={errors.password}
+                error={!!error && error.includes('password')}
+                helperText={error && error.includes('password') ? error : ''}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -160,7 +148,6 @@ const Login = () => {
                 fullWidth
                 variant="contained"
                 size="large"
-                disabled={loading}
                 sx={{
                   mt: 2,
                   mb: 2,
@@ -171,7 +158,7 @@ const Login = () => {
                   },
                 }}
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                Login
               </Button>
               <Box sx={{ textAlign: 'center' }}>
                 <Link

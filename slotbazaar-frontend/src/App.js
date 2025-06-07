@@ -8,7 +8,6 @@ import Dashboard from './pages/Dashboard';
 import Balance from './pages/Balance';
 import Transactions from './pages/Transactions';
 import PrivateRoute from './components/PrivateRoute';
-import NavBar from './components/NavBar';
 
 import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw';
@@ -20,8 +19,8 @@ import HighLowCard from './pages/games/HighLowCard';
 import NumberGuess from './pages/games/NumberGuess';
 import ReelSlot from './pages/games/ReelSlot';
 import RockPaperScissors from './pages/games/RockPaperScissors';
-import ScratchCardSimulator from './pages/games/ScratchCardSimulator';
 import SimpleRoulette from './pages/games/SimpleRoulette';
+import WheelOfFortune from './pages/games/WheelOfFortune';
 import SimplifiedBlackjack from './pages/games/SimplifiedBlackjack';
 import Terms from './pages/Terms';
 import MarkdownPage from './components/MarkdownPage';
@@ -29,7 +28,6 @@ import MarkdownPage from './components/MarkdownPage';
 function App() {
   return (
     <Layout>
-      <NavBar />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -95,7 +93,7 @@ function App() {
         />
 
         <Route
-          path="/games/coinflip"
+          path="/games/coin"
           element={
             <PrivateRoute>
               <CoinFlip />
@@ -103,7 +101,7 @@ function App() {
           }
         />
         <Route
-          path="/games/diceroll"
+          path="/games/dice"
           element={
             <PrivateRoute>
               <DiceRoll />
@@ -111,7 +109,7 @@ function App() {
           }
         />
         <Route
-          path="/games/highlowcard"
+          path="/games/highlow"
           element={
             <PrivateRoute>
               <HighLowCard />
@@ -119,7 +117,7 @@ function App() {
           }
         />
         <Route
-          path="/games/numberguess"
+          path="/games/guess"
           element={
             <PrivateRoute>
               <NumberGuess />
@@ -127,7 +125,7 @@ function App() {
           }
         />
         <Route
-          path="/games/reelslot"
+          path="/games/slot"
           element={
             <PrivateRoute>
               <ReelSlot />
@@ -135,7 +133,7 @@ function App() {
           }
         />
         <Route
-          path="/games/rockpaperscissors"
+          path="/games/rps"
           element={
             <PrivateRoute>
               <RockPaperScissors />
@@ -143,18 +141,18 @@ function App() {
           }
         />
         <Route
-          path="/games/scratchcard"
+          path="/games/roulette"
           element={
             <PrivateRoute>
-              <ScratchCardSimulator />
+              <SimpleRoulette />
             </PrivateRoute>
           }
         />
         <Route
-          path="/games/simpleroulette"
+          path="/games/wheel"
           element={
             <PrivateRoute>
-              <SimpleRoulette />
+              <WheelOfFortune />
             </PrivateRoute>
           }
         />

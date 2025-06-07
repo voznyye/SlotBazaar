@@ -9,6 +9,8 @@ import {
   CircularProgress,
   Slider,
   Grid,
+  Container,
+  Paper,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -16,7 +18,7 @@ import API from '../../api';
 
 const NumberGuess = () => {
   const [bet, setBet] = useState('');
-  const [guess, setGuess] = useState(50);
+  const [guess, setGuess] = useState(5);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [revealing, setRevealing] = useState(false);
@@ -30,7 +32,7 @@ const NumberGuess = () => {
     setLoading(true);
     setRevealing(true);
     try {
-      const response = await API.post('/games/number/guess', { bet, guess });
+      const response = await API.post('/games/guess/play', { bet_amount: bet, guess });
       setResult(response.data);
       toast.success(response.data.result === 'win' ? 'You won!' : 'Better luck next time!');
     } catch (error) {
@@ -71,13 +73,13 @@ const NumberGuess = () => {
             />
 
             <Typography gutterBottom>
-              Guess a number between 1 and 100
+              Guess a number between 1 and 10
             </Typography>
             <Slider
               value={guess}
               onChange={(_, value) => setGuess(value)}
               min={1}
-              max={100}
+              max={10}
               valueLabelDisplay="auto"
               sx={{ mb: 3 }}
             />

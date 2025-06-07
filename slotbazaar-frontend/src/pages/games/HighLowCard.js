@@ -8,6 +8,8 @@ import {
   Typography,
   CircularProgress,
   Grid,
+  Container,
+  Paper,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -30,7 +32,7 @@ const HighLowCard = () => {
     setLoading(true);
     setFlipping(true);
     try {
-      const response = await API.post('/games/card/highlow', { bet, prediction: choice });
+      const response = await API.post('/games/highlow/play', { bet_amount: bet, choice: prediction });
       setResult(response.data);
       toast.success(response.data.result === 'win' ? 'You won!' : 'Better luck next time!');
     } catch (error) {
@@ -80,7 +82,7 @@ const HighLowCard = () => {
                   variant="contained"
                   color="primary"
                   size="large"
-                  onClick={() => handlePlay('high')}
+                  onClick={() => handlePlay('High')}
                   disabled={loading}
                   sx={{ height: 100, fontSize: '1.2rem' }}
                 >
@@ -93,7 +95,7 @@ const HighLowCard = () => {
                   variant="contained"
                   color="secondary"
                   size="large"
-                  onClick={() => handlePlay('low')}
+                  onClick={() => handlePlay('Low')}
                   disabled={loading}
                   sx={{ height: 100, fontSize: '1.2rem' }}
                 >
@@ -171,7 +173,7 @@ const HighLowCard = () => {
                   {result.result === 'win' ? 'You Won!' : 'You Lost'}
                 </Typography>
                 <Typography variant="body1">
-                  Prediction: {prediction === 'high' ? 'Higher' : 'Lower'}
+                  Prediction: {prediction === 'High' ? 'Higher' : 'Lower'}
                 </Typography>
                 <Typography variant="body1">
                   Winnings: {result.winnings}

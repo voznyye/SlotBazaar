@@ -21,48 +21,79 @@ import {
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 
+// Import game images
+import coinFlipImage from '../assets/images/games/coinflip.png';
+import diceRollImage from '../assets/images/games/dice.png';
+import rouletteImage from '../assets/images/games/simpleroulette.png';
+import blackjackImage from '../assets/images/games/blackjack.png';
+import slotMachineImage from '../assets/images/games/slot.png';
+import wheelImage from '../assets/images/games/wheel.png';
+import highLowImage from '../assets/images/games/high.png';
+import guessImage from '../assets/images/games/guess.png';
+import rpsImage from '../assets/images/games/sps.png';
 const games = [
   {
-    id: 'coin-flip',
+    id: 'coin',
     name: 'Coin Flip',
     description: 'Classic heads or tails game with a 96% RTP',
-    image: '/images/coin-flip.jpg',
-    path: '/games/coin-flip',
+    image: coinFlipImage,
+    path: '/games/coin',
   },
   {
-    id: 'dice-roll',
+    id: 'dice',
     name: 'Dice Roll',
     description: 'Roll the dice and win big!',
-    image: '/images/dice-roll.jpg',
-    path: '/games/dice-roll',
+    image: diceRollImage,
+    path: '/games/dice',
   },
   {
     id: 'roulette',
     name: 'Roulette',
     description: 'European-style roulette with multiple betting options',
-    image: '/images/roulette.jpg',
+    image: rouletteImage,
     path: '/games/roulette',
   },
   {
     id: 'blackjack',
     name: 'Blackjack',
     description: 'Classic card game with perfect strategy',
-    image: '/images/blackjack.jpg',
+    image: blackjackImage,
     path: '/games/blackjack',
   },
   {
-    id: 'slot-machine',
+    id: 'slot',
     name: 'Slot Machine',
     description: 'Try your luck with our modern slot machine',
-    image: '/images/slot-machine.jpg',
-    path: '/games/slot-machine',
+    image: slotMachineImage,
+    path: '/games/slot',
   },
   {
-    id: 'wheel-of-fortune',
+    id: 'wheel',
     name: 'Wheel of Fortune',
     description: 'Spin the wheel and win amazing prizes',
-    image: '/images/wheel.jpg',
+    image: wheelImage,
     path: '/games/wheel',
+  },
+  {
+    id: 'highlow',
+    name: 'High Low Card',
+    description: 'Guess if the next card will be higher or lower',
+    image: highLowImage,
+    path: '/games/highlow',
+  },
+  {
+    id: 'guess',
+    name: 'Number Guess',
+    description: 'Try to guess the number and win big!',
+    image: guessImage,
+    path: '/games/guess',
+  },
+  {
+    id: 'rps',
+    name: 'Rock Paper Scissors',
+    description: 'Classic game of Rock Paper Scissors',
+    image: rpsImage,
+    path: '/games/rps',
   },
 ];
 
@@ -183,7 +214,7 @@ const Dashboard = () => {
               >
                 <CardMedia
                   component="img"
-                  height="140"
+                  height="340"
                   image={game.image}
                   alt={game.name}
                   sx={{

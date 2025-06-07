@@ -1,10 +1,12 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8003',
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Add request interceptor for authentication
@@ -17,6 +19,7 @@ API.interceptors.request.use(
     return config;
   },
   (error) => {
+    toast.error('Network request failed');
     return Promise.reject(error);
   }
 );
@@ -25,10 +28,43 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+    if (error.code === 'ECONNABORTED') {
+      toast.error('Request timed out. Please try again.');
+      return Promise.reject(error);
     }
+
+    if (!error.response) {
+      toast.error('Network error. Please check your connection.');
+      return Promise.reject(error);
+    }
+
+    const { status } = error.response;
+
+    switch (status) {
+      case 400:
+        toast.error(error.response?.data?.detail || 'Invalid request');
+        break;
+      case 401:
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+        toast.error('Session expired. Please login again.');
+        break;
+      case 403:
+        toast.error('You do not have permission to perform this action');
+        break;
+      case 404:
+        toast.error('Resource not found');
+        break;
+      case 429:
+        toast.error('Too many requests. Please try again later');
+        break;
+      case 500:
+        toast.error('Server error. Please try again later');
+        break;
+      default:
+        toast.error('An unexpected error occurred');
+    }
+
     return Promise.reject(error);
   }
 );

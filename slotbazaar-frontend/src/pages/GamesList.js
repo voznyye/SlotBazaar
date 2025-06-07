@@ -12,69 +12,79 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 
+import coinFlipImage from '../assets/images/games/coinflip.png';
+import diceRollImage from '../assets/images/games/dice.png';
+import rouletteImage from '../assets/images/games/simpleroulette.png';
+import blackjackImage from '../assets/images/games/blackjack.png';
+import slotMachineImage from '../assets/images/games/slot.png';
+import wheelImage from '../assets/images/games/wheel.png';
+import highLowImage from '../assets/images/games/high.png';
+import guessImage from '../assets/images/games/guess.png';
+import rpsImage from '../assets/images/games/sps.png';
+
 const games = [
   {
-    id: 'coinflip',
-    title: 'Coin Flip',
-    description: 'Classic heads or tails game with instant results',
-    image: '/images/games/coinflip.jpg',
-    path: '/games/coinflip',
-  },
-  {
-    id: 'diceroll',
-    title: 'Dice Roll',
-    description: 'Roll the dice and test your luck',
-    image: '/images/games/dice.jpg',
-    path: '/games/diceroll',
-  },
-  {
-    id: 'highlowcard',
+    id: 'highlow',
     title: 'High Low Card',
     description: 'Predict if the next card will be higher or lower',
-    image: '/images/games/cards.jpg',
-    path: '/games/highlowcard',
+    image: highLowImage,
+    path: '/games/highlow',
   },
   {
-    id: 'numberguess',
-    title: 'Number Guess',
-    description: 'Try to guess the number and win big',
-    image: '/images/games/numbers.jpg',
-    path: '/games/numberguess',
-  },
-  {
-    id: 'reelslot',
-    title: 'Reel Slot',
-    description: 'Classic slot machine with multiple paylines',
-    image: '/images/games/slot.jpg',
-    path: '/games/reelslot',
-  },
-  {
-    id: 'rockpaperscissors',
+    id: 'rps',
     title: 'Rock Paper Scissors',
-    description: 'Play the classic game with a twist',
-    image: '/images/games/rps.jpg',
-    path: '/games/rockpaperscissors',
-  },
-  {
-    id: 'scratchcard',
-    title: 'Scratch Card',
-    description: 'Reveal symbols and win instant prizes',
-    image: '/images/games/scratch.jpg',
-    path: '/games/scratchcard',
-  },
-  {
-    id: 'simpleroulette',
-    title: 'Simple Roulette',
-    description: 'Place your bets on numbers and colors',
-    image: '/images/games/roulette.jpg',
-    path: '/games/simpleroulette',
+    description: 'Classic game of Rock Paper Scissors',
+    image: rpsImage,
+    path: '/games/rps',
   },
   {
     id: 'blackjack',
     title: 'Blackjack',
-    description: 'Classic card game against the dealer',
-    image: '/images/games/blackjack.jpg',
+    description: 'Try to beat the dealer',
+    image: blackjackImage,
     path: '/games/blackjack',
+  },
+  {
+    id: 'slot',
+    title: 'Reel Slot',
+    description: 'Spin the reels and win big',
+    image: slotMachineImage,
+    path: '/games/slot',
+  },
+  {
+    id: 'coin',
+    title: 'Coin Flip',
+    description: 'Heads or tails?',
+    image: coinFlipImage,
+    path: '/games/coin',
+  },
+  {
+    id: 'dice',
+    title: 'Dice Roll',
+    description: 'Roll the dice and test your luck',
+    image: diceRollImage,
+    path: '/games/dice',
+  },
+  {
+    id: 'guess',
+    title: 'Number Guess',
+    description: 'Guess the number and win',
+    image: guessImage,
+    path: '/games/guess',
+  },
+  {
+    id: 'roulette',
+    title: 'Roulette',
+    description: 'Place your bets on red or black',
+    image: rouletteImage,
+    path: '/games/roulette',
+  },
+  {
+    id: 'wheel',
+    title: 'Wheel of Fortune',
+    description: 'Spin the wheel and win prizes',
+    image: wheelImage,
+    path: '/games/wheel',
   },
 ];
 
