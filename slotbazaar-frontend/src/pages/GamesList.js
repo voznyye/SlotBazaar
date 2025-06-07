@@ -121,7 +121,7 @@ const GamesList = () => {
               >
                 <CardMedia
                   component="img"
-                  height="200"
+                  height="340"
                   image={game.image}
                   alt={game.title}
                   sx={{

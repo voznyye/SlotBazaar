@@ -39,11 +39,11 @@ const Withdraw = () => {
     setError(null);
 
     try {
-      const response = await API.post('/transactions/withdraw', {
+      const response = await API.post('/auth/withdraw', {
         amount: parseFloat(amount)
       });
 
-      updateBalance(response.data.new_balance);
+      updateBalance(response.data.balance);
       toast.success(`Successfully withdrew $${amount}`);
       setAmount('');
     } catch (error) {
@@ -148,7 +148,7 @@ const Withdraw = () => {
                         textShadow: '0 0 20px rgba(255, 0, 255, 0.5)',
                       }}
                     >
-                      ${user?.balance?.toFixed(2) || '0.00'}
+                      ${(Number(user?.balance) || 0).toFixed(2)}
                     </Typography>
                   </Paper>
                 </motion.div>

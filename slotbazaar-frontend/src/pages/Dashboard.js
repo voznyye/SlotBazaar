@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -20,6 +20,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import API from '../api';
 
 // Import game images
 import coinFlipImage from '../assets/images/games/coinflip.png';
@@ -101,8 +102,29 @@ const Dashboard = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [stats, setStats] = useState({
+    total_games: 0,
+    total_bet: 0,
+    total_won: 0,
+    net_result: 0
+  });
 
-  const stats = [
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await API.get('/user/stats');
+        if (response.data && response.data.stats) {
+          setStats(response.data.stats);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const displayStats = [
     {
       title: 'Balance',
       value: `$${parseFloat(user?.balance || 0).toFixed(2)}`,
@@ -111,19 +133,19 @@ const Dashboard = () => {
     },
     {
       title: 'Games Played',
-      value: user?.gamesPlayed || 0,
+      value: stats.total_games,
       icon: <Casino sx={{ fontSize: 40 }} />,
       color: theme.palette.secondary.main,
     },
     {
       title: 'Win Rate',
-      value: `${user?.winRate || 0}%`,
+      value: `${stats.total_games > 0 ? ((stats.total_won / stats.total_bet) * 100).toFixed(1) : 0}%`,
       icon: <TrendingUp sx={{ fontSize: 40 }} />,
       color: theme.palette.success.main,
     },
     {
       title: 'Total Winnings',
-      value: `$${parseFloat(user?.totalWinnings || 0).toFixed(2)}`,
+      value: `$${parseFloat(stats.total_won || 0).toFixed(2)}`,
       icon: <History sx={{ fontSize: 40 }} />,
       color: theme.palette.warning.main,
     },
@@ -133,7 +155,7 @@ const Dashboard = () => {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Grid container spacing={3}>
         {/* Stats Section */}
-        {stats.map((stat, index) => (
+        {displayStats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={stat.title}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}

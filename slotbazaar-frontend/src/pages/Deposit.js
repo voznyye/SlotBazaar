@@ -34,11 +34,11 @@ const Deposit = () => {
     setError(null);
 
     try {
-      const response = await API.post('/transactions/deposit', {
+      const response = await API.post('/auth/deposit', {
         amount: parseFloat(amount)
       });
 
-      updateBalance(response.data.new_balance);
+      updateBalance(response.data.balance);
       toast.success(`Successfully deposited $${amount}`);
       setAmount('');
     } catch (error) {
@@ -143,7 +143,7 @@ const Deposit = () => {
                         textShadow: '0 0 20px rgba(0, 255, 255, 0.5)',
                       }}
                     >
-                      ${user?.balance?.toFixed(2) || '0.00'}
+                      ${(Number(user?.balance) || 0).toFixed(2)}
                     </Typography>
                   </Paper>
                 </motion.div>

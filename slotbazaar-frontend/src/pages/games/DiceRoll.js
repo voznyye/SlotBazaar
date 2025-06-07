@@ -59,7 +59,7 @@ const DiceRoll = () => {
     setError(null);
 
     try {
-      const response = await API.post('/games/dice/', {
+      const response = await API.post('/games/dice', {
         bet: parseFloat(bet),
         choice: parseInt(prediction)
       });
