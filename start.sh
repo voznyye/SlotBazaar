@@ -1,25 +1,22 @@
 #!/bin/bash
 
-# КРИТИЧЕСКАЯ СИТУАЦИЯ: ПРИНУДИТЕЛЬНЫЙ СБРОС БАЗЫ ДАННЫХ
-echo "EMERGENCY DATABASE RESET IN PROGRESS..."
-echo "This will delete all data and recreate the database schema!"
-
-# Принудительно выполняем скрипт сброса базы данных (--force пропускает подтверждение)
-python scripts/reset_database.py --force
-
-# Если по какой-то причине скрипт сброса не сработал, пробуем другие методы
-if [ $? -ne 0 ]; then
-    echo "Emergency reset failed, trying alternative methods..."
-    
-    # Пытаемся использовать более простой скрипт создания таблиц
-    python scripts/create_tables.py
-    
-    # Если и это не сработало, пробуем Alembic
-    if [ $? -ne 0 ]; then
-        echo "Direct SQL approach failed, trying migrations..."
-        alembic upgrade heads || echo "All database repair methods failed!"
-    fi
-fi
+# Применяем миграции с улучшенной обработкой ошибок
+echo "Running database migrations..."
+# Сначала попробуем перейти к объединяющей миграции, которая включает все изменения
+alembic upgrade merge_heads || {
+    echo "Merge migration failed, trying individual migrations..."
+    # Если объединение не сработало, попробуем сначала recreate_all_tables
+    alembic upgrade recreate_all_tables || {
+        echo "Recreation migration failed, trying remaining migrations..."
+        # Пытаемся выполнить все миграции
+        alembic upgrade heads || {
+            echo "All migrations failed, using direct SQL approach..."
+            
+            # Запускаем скрипт для создания таблиц напрямую (без сброса данных)
+            python scripts/create_tables.py
+        }
+    }
+}
 
 # Запускаем приложение
 echo "Starting application..."
