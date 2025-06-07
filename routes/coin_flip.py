@@ -24,7 +24,7 @@ class CoinFlipResponse(BaseModel):
     winnings: Decimal
     new_balance: Decimal
 
-@router.post("/flip", response_model=CoinFlipResponse)
+@router.post("/", response_model=CoinFlipResponse)
 def play_coin_flip_game(
     request: CoinFlipRequest,
     current_user: User = Depends(get_current_user),

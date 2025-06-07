@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 import sys
 import os
@@ -25,6 +25,8 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+api_router = APIRouter(prefix="/api")
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -35,20 +37,22 @@ app.add_middleware(
 )
 
 # Authentication and User Management
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(user.router, prefix="/user", tags=["User Management"])
+api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+api_router.include_router(user.router, prefix="/user", tags=["User Management"])
 
 # Game Routes
-app.include_router(coin_flip.router, prefix="/games/coin", tags=["Coin Flip"])
-app.include_router(dice_roll.router, prefix="/games/dice", tags=["Dice Roll"])
-app.include_router(high_low_card.router, prefix="/games/highlow", tags=["High Low Card"])
-app.include_router(number_guess.router, prefix="/games/guess", tags=["Number Guess"])
-app.include_router(rock_paper_scissors.router, prefix="/games/rps",  tags=["Rock Paper Scissors"])
-app.include_router(scratch_card_simulator.router, prefix="/games/scratch", tags=["Scratch Card"])
-app.include_router(simple_roulette.router, prefix="/games/roulette", tags=["Roulette"])
-app.include_router(simplified_blackjack.router, prefix="/games/blackjack", tags=["Blackjack"])
-app.include_router(wheel_of_fortune.router, prefix="/games/wheel", tags=["Wheel of Fortune"])
-app.include_router(reel_slot.router, prefix="/games/slot", tags=["Slot Machine"])
+api_router.include_router(coin_flip.router, prefix="/games/coin", tags=["Coin Flip"])
+api_router.include_router(dice_roll.router, prefix="/games/dice", tags=["Dice Roll"])
+api_router.include_router(high_low_card.router, prefix="/games/highlow", tags=["High Low Card"])
+api_router.include_router(number_guess.router, prefix="/games/guess", tags=["Number Guess"])
+api_router.include_router(rock_paper_scissors.router, prefix="/games/rps",  tags=["Rock Paper Scissors"])
+api_router.include_router(scratch_card_simulator.router, prefix="/games/scratch", tags=["Scratch Card"])
+api_router.include_router(simple_roulette.router, prefix="/games/roulette", tags=["Roulette"])
+api_router.include_router(simplified_blackjack.router, prefix="/games/blackjack", tags=["Blackjack"])
+api_router.include_router(wheel_of_fortune.router, prefix="/games/wheel", tags=["Wheel of Fortune"])
+api_router.include_router(reel_slot.router, prefix="/games/slot", tags=["Slot Machine"])
+
+app.include_router(api_router)
 
 @app.get("/", tags=["Root"])
 def read_root():
