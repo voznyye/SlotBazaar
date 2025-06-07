@@ -1,28 +1,23 @@
 #!/bin/bash
 
-# ЗАЩИТА ОТ СБРОСА ДАННЫХ
+# КРИТИЧЕСКАЯ СИТУАЦИЯ: Прямое исправление базы данных
+echo "КРИТИЧЕСКАЯ СИТУАЦИЯ: Принудительное исправление базы данных"
+echo "Это создаст все необходимые таблицы независимо от состояния метаданных"
+
+# Отключаем опасные скрипты для безопасности
 if [ -f "scripts/reset_database.py" ]; then
     echo "ВНИМАНИЕ: Обнаружен скрипт reset_database.py, временно переименовываем его для защиты данных"
     mv scripts/reset_database.py scripts/reset_database.py.disabled
 fi
 
-# Применяем миграции с улучшенной обработкой ошибок
-echo "Running database migrations..."
-# Сначала попробуем перейти к объединяющей миграции, которая включает все изменения
-alembic upgrade merge_heads || {
-    echo "Merge migration failed, trying individual migrations..."
-    # Если объединение не сработало, попробуем сначала recreate_all_tables
-    alembic upgrade recreate_all_tables || {
-        echo "Recreation migration failed, trying remaining migrations..."
-        # Пытаемся выполнить все миграции
-        alembic upgrade heads || {
-            echo "All migrations failed, using direct SQL approach..."
-            
-            # Запускаем безопасный скрипт восстановления таблиц (НЕ УДАЛЯЕТ данные)
-            echo "Запускаем безопасный скрипт восстановления таблиц..."
-            python scripts/recover_tables.py
-        }
-    }
+# Запускаем скрипт исправления базы данных
+echo "Запускаем скрипт исправления базы данных..."
+python scripts/fix_database.py
+
+# Даже после фиксации, пробуем применить миграции для обновления структуры
+echo "Проверка и применение миграций..."
+alembic upgrade heads || {
+    echo "Применение миграций не требуется или не удалось, используем восстановленную структуру"
 }
 
 # Запускаем приложение
