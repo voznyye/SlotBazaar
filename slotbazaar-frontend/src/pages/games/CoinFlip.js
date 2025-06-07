@@ -1,169 +1,196 @@
-import React, { useState } from 'react';
-import { Container, Paper, TextField, Button, Typography, Box, CircularProgress } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+  CircularProgress,
+  Alert,
+} from '@mui/material';
 import { toast } from 'react-toastify';
 import API from '../../api';
-import GameAnimations from '../../components/GameAnimations/GameAnimations';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../contexts/AuthContext';
 
-const CoinFlip = () => {
+const MAX_BET = 1000; // Maximum bet amount
+const MIN_BET = 1; // Minimum bet amount
+
+export default function CoinFlip() {
+  const { user, updateBalance } = useAuth();
   const [bet, setBet] = useState('');
-  const [flipping, setFlipping] = useState(false);
+  const [choice, setChoice] = useState('heads');
   const [result, setResult] = useState(null);
-  const [showAnimation, setShowAnimation] = useState(false);
-  const [prediction, setPrediction] = useState('heads'); // 'heads' or 'tails'
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [gameState, setGameState] = useState('idle'); // idle, playing, result
 
-  const handlePlay = async () => {
-    if (!bet || bet <= 0) {
-      toast.error('Please enter a valid bet amount');
+  useEffect(() => {
+    // Reset game state when component mounts
+    return () => {
+      setBet('');
+      setChoice('heads');
+      setResult(null);
+      setError(null);
+      setGameState('idle');
+    };
+  }, []);
+
+  const validateBet = (value) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue < MIN_BET) {
+      return `Minimum bet is ${MIN_BET}`;
+    }
+    if (numValue > MAX_BET) {
+      return `Maximum bet is ${MAX_BET}`;
+    }
+    if (numValue > user.balance) {
+      return 'Insufficient balance';
+    }
+    return null;
+  };
+
+  const handleBetChange = (e) => {
+    const value = e.target.value;
+    setBet(value);
+    const error = validateBet(value);
+    setError(error);
+  };
+
+  const handlePlay = async (e) => {
+    e.preventDefault();
+    
+    const error = validateBet(bet);
+    if (error) {
+      toast.error(error);
       return;
     }
-    setFlipping(true);
-    setShowAnimation(false);
-    try {
-      const response = await API.post('/games/coinflip/play', {
-        bet_amount: parseFloat(bet),
-        prediction: prediction
-      });
-      setResult(response.data);
-      
-      // Show animation after a short delay
-      setTimeout(() => {
-        setShowAnimation(true);
-      }, 1000);
 
-      if (response.data.net_win_loss >= 0) {
-        toast.success(`You won ${response.data.net_win_loss} coins!`, {
-          position: "top-center",
-          autoClose: 3000,
-        });
+    setLoading(true);
+    setGameState('playing');
+    setError(null);
+
+    try {
+      const response = await API.post('/games/coin', {
+        bet: parseFloat(bet),
+        choice,
+      });
+
+      setResult(response.data);
+      updateBalance(response.data.new_balance);
+      setGameState('result');
+
+      if (response.data.result === 'win') {
+        toast.success(`You won $${response.data.winnings}!`);
       } else {
-        toast.info('Better luck next time!', {
-          position: "top-center",
-          autoClose: 2000,
-        });
+        toast.info('Better luck next time!');
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to flip coin');
+      setError(error.response?.data?.detail || 'Something went wrong');
+      toast.error(error.response?.data?.detail || 'Game failed');
+      setGameState('idle');
     } finally {
-      setFlipping(false);
+      setLoading(false);
     }
   };
 
-  const coinVariants = {
-    flipping: {
-      rotateY: [0, 360, 720, 1080, 1440],
-      scale: [1, 1.2, 1, 1.2, 1],
-      transition: {
-        duration: 2,
-        ease: "easeInOut"
-      }
-    },
-    heads: {
-      rotateY: 0,
-      scale: 1
-    },
-    tails: {
-      rotateY: 180,
-      scale: 1
-    }
+  const handlePlayAgain = () => {
+    setBet('');
+    setChoice('heads');
+    setResult(null);
+    setError(null);
+    setGameState('idle');
   };
 
   return (
-    <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ p: 4, mt: 4, position: 'relative' }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Coin Flip
-        </Typography>
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            fullWidth
-            label="Bet Amount"
-            type="number"
-            value={bet}
-            onChange={(e) => setBet(e.target.value)}
-            margin="normal"
-            InputProps={{
-              inputProps: { min: 0, step: 0.01 }
-            }}
-          />
-          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-            <Button
-              variant={prediction === 'heads' ? 'contained' : 'outlined'}
-              onClick={() => setPrediction('heads')}
-              fullWidth
-            >
-              Heads
-            </Button>
-            <Button
-              variant={prediction === 'tails' ? 'contained' : 'outlined'}
-              onClick={() => setPrediction('tails')}
-              fullWidth
-            >
-              Tails
-            </Button>
-          </Box>
-        </Box>
-        <Button
-          fullWidth
-          variant="contained"
-          color="primary"
-          onClick={handlePlay}
-          disabled={flipping}
-          sx={{ height: 48 }}
-        >
-          {flipping ? <CircularProgress size={24} /> : 'Flip Coin'}
-        </Button>
-        {result && (
-          <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <motion.div
-              variants={coinVariants}
-              animate={flipping ? "flipping" : result.result === 'heads' ? "heads" : "tails"}
-              style={{
-                perspective: '1000px',
-                marginBottom: '20px'
-              }}
-            >
-              <Box
-                sx={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: '50%',
-                  backgroundColor: '#FFD700',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  boxShadow: '0 0 10px rgba(0,0,0,0.2)',
-                  fontSize: '2rem'
-                }}
+    <Box sx={{ maxWidth: 600, mx: 'auto', p: 3 }}>
+      <Card>
+        <CardContent>
+          <Typography variant="h4" gutterBottom align="center">
+            Coin Flip
+          </Typography>
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          {gameState === 'result' ? (
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h6" color={result.result === 'win' ? 'success.main' : 'error.main'}>
+                {result.result === 'win' ? 'You Won!' : 'You Lost'}
+              </Typography>
+              <Typography variant="body1">
+                Outcome: {result.outcome}
+              </Typography>
+              <Typography variant="body1">
+                Winnings: {result.winnings}
+              </Typography>
+              <Typography variant="body1">
+                New Balance: {result.new_balance}
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handlePlayAgain}
+                sx={{ mt: 2 }}
               >
-                {result.result === 'heads' ? 'H' : 'T'}
+                Play Again
+              </Button>
+            </Box>
+          ) : (
+            <form onSubmit={handlePlay}>
+              <Box sx={{ mb: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Bet Amount"
+                  type="number"
+                  value={bet}
+                  onChange={handleBetChange}
+                  error={!!error}
+                  helperText={error}
+                  InputProps={{
+                    inputProps: {
+                      min: MIN_BET,
+                      max: MAX_BET,
+                      step: 1,
+                    },
+                  }}
+                  sx={{ mb: 2 }}
+                />
+
+                <FormControl fullWidth>
+                  <InputLabel>Choose Side</InputLabel>
+                  <Select
+                    value={choice}
+                    label="Choose Side"
+                    onChange={(e) => setChoice(e.target.value)}
+                  >
+                    <MenuItem value="heads">Heads</MenuItem>
+                    <MenuItem value="tails">Tails</MenuItem>
+                  </Select>
+                </FormControl>
               </Box>
-            </motion.div>
-            <Typography variant="h6" gutterBottom>
-              Result: {result.result.toUpperCase()}
-            </Typography>
-            <Typography>
-              Winnings: {result.winnings}
-            </Typography>
-            <Typography>
-              Net Win/Loss: {result.net_win_loss}
-            </Typography>
-          </Box>
-        )}
-      </Paper>
 
-      {/* Game Animations */}
-      <AnimatePresence>
-        {showAnimation && result && (
-          <GameAnimations
-            result={result.net_win_loss >= 0 ? 'win' : 'lose'}
-            winnings={result.net_win_loss}
-            gameType="coinflip"
-          />
-        )}
-      </AnimatePresence>
-    </Container>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                type="submit"
+                disabled={loading || !!error || gameState === 'playing'}
+                sx={{ height: 48 }}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Flip Coin'}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   );
-};
-
-export default CoinFlip;
+}

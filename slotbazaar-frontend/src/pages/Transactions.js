@@ -74,7 +74,7 @@ const Transactions = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await API.get('/transactions');
+      const response = await API.get('/user/transactions');
       setTransactions(response.data);
     } catch (error) {
       console.error('Error fetching transactions:', error);

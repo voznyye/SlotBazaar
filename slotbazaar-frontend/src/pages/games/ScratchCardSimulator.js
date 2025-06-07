@@ -10,8 +10,10 @@ import {
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import API from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ScratchCardSimulator = () => {
+  const { user, updateBalance } = useAuth();
   const [bet, setBet] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -27,14 +29,27 @@ const ScratchCardSimulator = () => {
       return;
     }
 
+    if (parseFloat(bet) > user.balance) {
+      toast.error('Insufficient balance');
+      return;
+    }
+
     setLoading(true);
+    setRevealed(false);
     try {
-      const response = await API.post('/games/scratch/play', { bet });
+      const response = await API.post('/games/scratch', {
+        bet_amount: parseFloat(bet)
+      });
       setResult(response.data);
-      initScratchCard();
-      toast.success('Scratch to reveal your prize!');
+      
+      // Update balance with the new balance from the response
+      if (response.data.new_balance !== undefined) {
+        updateBalance(response.data.new_balance);
+      }
+
+      toast.success(response.data.result === 'win' ? 'You won!' : 'Better luck next time!');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Something went wrong');
+      toast.error(error.response?.data?.detail || 'Failed to play');
     } finally {
       setLoading(false);
     }
@@ -205,10 +220,10 @@ const ScratchCardSimulator = () => {
                   Symbol: {result.symbol}
                 </Typography>
                 <Typography variant="body1">
-                  Winnings: {result.winnings}
+                  Winnings: ${result.winnings}
                 </Typography>
                 <Typography variant="body1">
-                  New Balance: {result.new_balance}
+                  New Balance: ${result.new_balance}
                 </Typography>
               </Box>
             )}

@@ -108,8 +108,8 @@ export const AuthProvider = ({ children }) => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await API.get('/auth/transactions');
-      setTransactions(response.data);
+      const response = await API.get('/user/transactions');
+      setTransactions(response.data.transactions || []);
     } catch (error) {
       console.error('Error fetching transactions:', error);
     }
@@ -180,11 +180,11 @@ export const AuthProvider = ({ children }) => {
       const transaction = {
         type: difference > 0 ? 'win' : 'loss',
         amount: Math.abs(difference),
-        timestamp: new Date().toISOString(),
-        balance: newBalance,
+        created_at: new Date().toISOString(),
+        balance_after: newBalance,
       };
       
-      setTransactions((prev) => [transaction, ...prev].slice(0, 50)); // Keep last 50 transactions
+      setTransactions((prev) => [transaction, ...(prev || [])].slice(0, 50)); // Keep last 50 transactions
       setLastBalanceUpdate(Date.now());
     }
   };

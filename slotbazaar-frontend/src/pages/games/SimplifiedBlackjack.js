@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Container, Paper, TextField, Button, Typography, Box, CircularProgress } from '@mui/material';
 import { toast } from 'react-toastify';
 import API from '../../api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SimplifiedBlackjack = () => {
+  const { user, updateBalance } = useAuth();
   const [bet, setBet] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -13,13 +15,25 @@ const SimplifiedBlackjack = () => {
       toast.error('Please enter a valid bet amount');
       return;
     }
+
+    if (parseFloat(bet) > user.balance) {
+      toast.error('Insufficient balance');
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await API.post('/games/blackjack/play', {
+      const response = await API.post('/games/blackjack', {
         bet_amount: parseFloat(bet)
       });
       setResult(response.data);
-      toast.success(`You ${response.data.net_win_loss >= 0 ? 'won' : 'lost'} ${Math.abs(response.data.net_win_loss)} coins!`);
+      
+      // Update balance with the new balance from the response
+      if (response.data.new_balance !== undefined) {
+        updateBalance(response.data.new_balance);
+      }
+
+      toast.success(`You ${response.data.net_win_loss >= 0 ? 'won' : 'lost'} $${Math.abs(response.data.net_win_loss)}!`);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to play');
     } finally {
@@ -71,10 +85,13 @@ const SimplifiedBlackjack = () => {
               Result: {result.result_status}
             </Typography>
             <Typography>
-              Winnings: {result.winnings}
+              Winnings: ${result.winnings}
             </Typography>
             <Typography>
-              Net Win/Loss: {result.net_win_loss}
+              Net Win/Loss: ${result.net_win_loss}
+            </Typography>
+            <Typography>
+              New Balance: ${result.new_balance}
             </Typography>
           </Box>
         )}
