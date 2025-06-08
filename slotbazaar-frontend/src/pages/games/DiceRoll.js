@@ -71,9 +71,7 @@ const DiceRoll = () => {
       setResult(response.data);
       
       // Update balance with the new balance from the response
-      if (response.data.new_balance !== undefined) {
-        updateBalance(response.data.new_balance);
-      }
+      updateBalance(response.data.new_balance);
 
       // Show animation after a short delay
       setTimeout(() => {

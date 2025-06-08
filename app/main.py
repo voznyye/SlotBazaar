@@ -4,7 +4,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from pathlib import Path
+
+# Add the project root directory to Python path
+project_root = str(Path(__file__).parent.parent)
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
 from routes import auth
 from routes import user
@@ -39,7 +44,7 @@ app.add_middleware(
 )
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="slotbazaar-frontend/build/static"), name="static")
+# app.mount("/static", StaticFiles(directory="slotbazaar-frontend/build/static"), name="static")
 
 # Authentication and User Management
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])

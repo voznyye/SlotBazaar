@@ -9,20 +9,20 @@ from app.auth import get_current_user
 from app.db import get_db
 from app.models.user import User
 from app.services.game_service import GameService
-from scratch_card_simulator import play_scratch_card, CARD_COST
+from Games.scratch_card_simulator import play_scratch_card, CARD_COST
 
 router = APIRouter()
 
 class ScratchCardRequest(BaseModel):
-    bet_amount: float = None
+    bet_amount: condecimal(gt=0, decimal_places=2) = None
 
 class ScratchCardResponse(BaseModel):
     game: str
-    bet: float
-    revealed_payout_rate: float
-    winnings: float
-    net_win_loss: float
-    new_balance: float
+    bet: Decimal
+    revealed_payout_rate: Decimal
+    winnings: Decimal
+    net_win_loss: Decimal
+    new_balance: Decimal
 
 @router.post("/play", response_model=ScratchCardResponse)
 def play_scratch_card_game(
@@ -33,8 +33,10 @@ def play_scratch_card_game(
     try:
         # Scratch card has fixed cost
         if request and request.bet_amount is not None:
-            bet = decimal.Decimal(str(request.bet_amount))
-            result = play_scratch_card(bet)
+            # Check if user has sufficient balance
+            if current_user.balance < request.bet_amount:
+                raise HTTPException(status_code=400, detail="Insufficient balance")
+            result = play_scratch_card(request.bet_amount)
         else:
             result = play_scratch_card()
         
@@ -56,18 +58,18 @@ def play_scratch_card_game(
         
         return ScratchCardResponse(
             game=result["game"],
-            bet=float(result["bet"]),
-            revealed_payout_rate=float(result["revealed_payout_rate"]),
-            winnings=float(result["winnings"]),
-            net_win_loss=float(result["net_win_loss"]),
-            new_balance=float(current_user.balance)
+            bet=result["bet"],
+            revealed_payout_rate=result["revealed_payout_rate"],
+            winnings=result["winnings"],
+            net_win_loss=result["net_win_loss"],
+            new_balance=current_user.balance
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=f"Game error: {str(e)}")
 
 @router.get("/cost")
 def get_scratch_card_cost():
-    return {"card_cost": float(CARD_COST)}
+    return {"card_cost": CARD_COST}

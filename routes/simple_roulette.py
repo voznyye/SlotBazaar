@@ -9,12 +9,12 @@ from app.auth import get_current_user
 from app.db import get_db
 from app.models.user import User
 from app.services.game_service import GameService
-from simple_roulette import play_simple_roulette_redblack
+from Games.simple_roulette import play_simple_roulette_redblack
 
 router = APIRouter()
 
 class SimpleRouletteRequest(BaseModel):
-    bet_amount: float
+    bet_amount: condecimal(gt=0, decimal_places=2)
     choice: str
 
 class RouletteResponse(BaseModel):
@@ -22,11 +22,11 @@ class RouletteResponse(BaseModel):
     choice: str
     outcome_number: int
     outcome_color: str
-    bet: float
-    payout_rate_on_win: float
-    winnings: float
-    net_win_loss: float
-    new_balance: float
+    bet: Decimal
+    payout_rate_on_win: Decimal
+    winnings: Decimal
+    net_win_loss: Decimal
+    new_balance: Decimal
 
 @router.post("/play", response_model=RouletteResponse)
 def play_simple_roulette_game(
@@ -34,16 +34,24 @@ def play_simple_roulette_game(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    """Play simple roulette game"""
+    # Validate choice
+    if request.choice.lower() not in ['red', 'black']:
+        raise HTTPException(status_code=400, detail="Choice must be 'red' or 'black'")
+    
+    # Check if user has sufficient balance
+    if current_user.balance < request.bet_amount:
+        raise HTTPException(status_code=400, detail="Insufficient balance")
+    
     try:
-        bet = decimal.Decimal(str(request.bet_amount))
-        result = play_simple_roulette_redblack(bet, request.choice)
+        result = play_simple_roulette_redblack(request.bet_amount, request.choice)
         
         # Create game session and update balance
         game_service = GameService(db)
         session = game_service.create_game_session(
             user_id=current_user.id,
             game_type="roulette",
-            bet_amount=bet,
+            bet_amount=request.bet_amount,
             winnings=result["winnings"],
             game_data={
                 "choice": request.choice,
@@ -61,14 +69,14 @@ def play_simple_roulette_game(
             choice=result["choice"],
             outcome_number=result["outcome_number"],
             outcome_color=result["outcome_color"],
-            bet=float(result["bet"]),
-            payout_rate_on_win=float(result["payout_rate_on_win"]),
-            winnings=float(result["winnings"]),
-            net_win_loss=float(result["net_win_loss"]),
-            new_balance=float(current_user.balance)
+            bet=request.bet_amount,
+            payout_rate_on_win=result["payout_rate_on_win"],
+            winnings=result["winnings"],
+            net_win_loss=result["net_win_loss"],
+            new_balance=current_user.balance
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=f"Game error: {str(e)}")

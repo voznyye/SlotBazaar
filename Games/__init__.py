@@ -1,0 +1,3 @@
+"""
+Games package initialization
+""" 

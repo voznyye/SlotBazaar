@@ -9,7 +9,7 @@ from app.auth import get_current_user
 from app.db import get_db
 from app.models.user import User
 from app.services.game_service import GameService
-from high_low_card import play_high_low_card
+from Games.high_low_card import play_high_low_card
 
 router = APIRouter()
 

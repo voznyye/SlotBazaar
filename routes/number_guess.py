@@ -9,23 +9,23 @@ from app.auth import get_current_user
 from app.db import get_db
 from app.models.user import User
 from app.services.game_service import GameService
-from number_guess import play_number_guess
+from Games.number_guess import play_number_guess
 
 router = APIRouter()
 
 class NumberGuessRequest(BaseModel):
-    bet_amount: float
+    bet_amount: condecimal(gt=0, decimal_places=2)
     guess: int
 
 class NumberGuessResponse(BaseModel):
     game: str
     choice: int
     secret_number: int
-    bet: float
-    payout_rate_on_win: float
-    winnings: float
-    net_win_loss: float
-    new_balance: float
+    bet: Decimal
+    payout_rate_on_win: Decimal
+    winnings: Decimal
+    net_win_loss: Decimal
+    new_balance: Decimal
 
 @router.post("/play", response_model=NumberGuessResponse)
 def play_number_guess_game(
@@ -34,15 +34,22 @@ def play_number_guess_game(
     db: Session = Depends(get_db)
 ):
     try:
-        bet = decimal.Decimal(str(request.bet_amount))
-        result = play_number_guess(bet, request.guess)
+        # Validate guess
+        if request.guess < 1 or request.guess > 10:
+            raise HTTPException(status_code=400, detail="Guess must be between 1 and 10")
+            
+        # Check if user has sufficient balance
+        if current_user.balance < request.bet_amount:
+            raise HTTPException(status_code=400, detail="Insufficient balance")
+            
+        result = play_number_guess(request.bet_amount, request.guess)
         
         # Create game session and update balance
         game_service = GameService(db)
         session = game_service.create_game_session(
             user_id=current_user.id,
             game_type="number_guess",
-            bet_amount=bet,
+            bet_amount=request.bet_amount,
             winnings=result["winnings"],
             game_data={
                 "choice": request.guess,
@@ -58,14 +65,14 @@ def play_number_guess_game(
             game=result["game"],
             choice=result["choice"],
             secret_number=result["secret_number"],
-            bet=float(result["bet"]),
-            payout_rate_on_win=float(result["payout_rate_on_win"]),
-            winnings=float(result["winnings"]),
-            net_win_loss=float(result["net_win_loss"]),
-            new_balance=float(current_user.balance)
+            bet=result["bet"],
+            payout_rate_on_win=result["payout_rate_on_win"],
+            winnings=result["winnings"],
+            net_win_loss=result["net_win_loss"],
+            new_balance=current_user.balance
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=f"Game error: {str(e)}")
