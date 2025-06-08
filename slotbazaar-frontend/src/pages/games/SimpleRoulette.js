@@ -74,7 +74,7 @@ const SimpleRoulette = () => {
     try {
       const response = await API.post('/games/roulette/play', { 
         bet_amount: parseFloat(bet), 
-        choice: selectedNumber 
+        choice: selectedNumber.toString() 
       });
       
       setResult(response.data);
