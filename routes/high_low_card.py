@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, condecimal
 from sqlalchemy.orm import Session
-from decimal import Decimal, decimal
+from decimal import Decimal
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
