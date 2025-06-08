@@ -8,9 +8,6 @@ import {
   Typography,
   CircularProgress,
   Grid,
-  Chip,
-  Container,
-  Paper,
   Alert,
 } from '@mui/material';
 import { toast } from 'react-toastify';
@@ -22,14 +19,12 @@ import { AnimatePresence } from 'framer-motion';
 const SimpleRoulette = () => {
   const { user, updateBalance } = useAuth();
   const [bet, setBet] = useState('');
-  const [selectedNumber, setSelectedNumber] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [spinning, setSpinning] = useState(false);
   const [error, setError] = useState(null);
   const [showAnimation, setShowAnimation] = useState(false);
-
-  const numbers = Array.from({ length: 37 }, (_, i) => i); // 0-36
 
   const validateBet = (value) => {
     const numValue = parseFloat(value);
@@ -55,8 +50,8 @@ const SimpleRoulette = () => {
       return;
     }
 
-    if (selectedNumber === null) {
-      toast.error('Please select a number');
+    if (selectedColor === null) {
+      toast.error('Please select a color');
       return;
     }
 
@@ -74,7 +69,7 @@ const SimpleRoulette = () => {
     try {
       const response = await API.post('/games/roulette/play', { 
         bet_amount: parseFloat(bet), 
-        choice: selectedNumber.toString() 
+        choice: selectedColor 
       });
       
       setResult(response.data);
@@ -102,16 +97,10 @@ const SimpleRoulette = () => {
 
   const handlePlayAgain = () => {
     setBet('');
-    setSelectedNumber(null);
+    setSelectedColor(null);
     setResult(null);
     setError(null);
     setShowAnimation(false);
-  };
-
-  const getNumberColor = (number) => {
-    if (number === 0) return 'green';
-    const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-    return redNumbers.includes(number) ? 'red' : 'black';
   };
 
   return (
@@ -172,25 +161,27 @@ const SimpleRoulette = () => {
                 />
 
                 <Typography variant="h6" gutterBottom>
-                  Select a Number
+                  Select a Color
                 </Typography>
 
-                <Grid container spacing={1} sx={{ mb: 3 }}>
-                  {numbers.map((number) => (
-                    <Grid item key={number}>
-                      <Chip
-                        label={number}
-                        onClick={() => setSelectedNumber(number)}
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  {['Red', 'Black'].map((color) => (
+                    <Grid item xs={6} key={color}>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={() => setSelectedColor(color)}
                         sx={{
-                          width: 40,
-                          height: 40,
-                          bgcolor: selectedNumber === number ? 'primary.main' : getNumberColor(number),
-                          color: selectedNumber === number ? 'white' : 'white',
+                          height: 100,
+                          bgcolor: selectedColor === color ? 'primary.main' : color.toLowerCase(),
+                          color: 'white',
                           '&:hover': {
-                            bgcolor: selectedNumber === number ? 'primary.dark' : getNumberColor(number),
+                            bgcolor: selectedColor === color ? 'primary.dark' : color.toLowerCase(),
                           },
                         }}
-                      />
+                      >
+                        {color}
+                      </Button>
                     </Grid>
                   ))}
                 </Grid>
