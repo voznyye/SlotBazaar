@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
 Скрипт для прямого создания таблиц в базе данных.
+БЕЗОПАСНЫЙ РЕЖИМ - НЕ УДАЛЯЕТ СУЩЕСТВУЮЩИЕ ТАБЛИЦЫ!
 """
+
+# Флаг для защиты от удаления данных
+SAFE_MODE = True  # НИКОГДА НЕ МЕНЯЙТЕ ЭТОТ ФЛАГ!
 
 import os
 import psycopg2
@@ -30,10 +34,16 @@ if not DATABASE_URL:
         logger.info('Usage: python create_tables.py [DATABASE_URL]')
         sys.exit(1)
 
+# КРИТИЧЕСКАЯ ПРОВЕРКА РЕЖИМА РАБОТЫ
+if 'reset' in sys.argv[0].lower() or any('reset' in arg.lower() for arg in sys.argv[1:]):
+    logger.error("СТОП! Скрипт с 'reset' в имени или аргументах не может быть запущен! Это защитный механизм.")
+    sys.exit(1)
+
 try:
     # Подключаемся к базе данных
-    logger.info('Connecting to database...')
+    logger.info('Connecting to database in SAFE MODE (no data deletion)...')
     conn = psycopg2.connect(DATABASE_URL)
+    conn.autocommit = True  # Каждая команда будет в отдельной транзакции для безопасности
     cur = conn.cursor()
     
     # Проверяем существование таблицы users

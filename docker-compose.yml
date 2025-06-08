@@ -8,16 +8,25 @@ services:
     env_file:
       - .env
     ports:
-      - "8003:8000"
+      - "8000:8000"
     volumes:
       - .:/app
     command: >
       sh -c "
         echo 'Creating database tables...' &&
-        python -c 'from app.db import engine; from app.models.base import Base; Base.metadata.create_all(bind=engine)' &&
+        python -c 'from app.db import engine; from app.models.base import Base; from app.models.user import User; from app.models.game_session import GameSession; from app.models.transaction import Transaction; Base.metadata.create_all(bind=engine)' &&
         echo 'Starting application...' &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
+      
+  # Frontend React application
+  frontend:
+    build: ./slotbazaar-frontend
+    container_name: slotbazaar_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
 
   # FastAPI Application with PostgreSQL
   app-postgres:
@@ -85,7 +94,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"  # Используем 5433 чтобы не конфликтовать с локальным PostgreSQL
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U slotbazaar_user -d slotbazaar"]
       interval: 10s

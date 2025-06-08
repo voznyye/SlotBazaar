@@ -46,7 +46,7 @@ def play_wheel_of_fortune(bet_amount: decimal.Decimal) -> Dict[str, Union[str, i
 
     return {
         'game': GAME_NAME,
-        'winning_segment': winning_segment,
+        'winning_segment': str(winning_segment),
         'bet': bet_amount,
         'payout_rate_on_win': payout_rate,
         'winnings': winnings.quantize(decimal.Decimal('0.00')),
