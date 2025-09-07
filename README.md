@@ -125,12 +125,6 @@ Please ensure your code passes all tests and follows PEP8 standards.
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-## 📧 Contact
-
-Project Maintainer - [Your Name] - your.email@example.com
-
-Project Link: [https://github.com/yourusername/slotbazaar](https://github.com/yourusername/slotbazaar)
-
 ---
 
 **Disclaimer:** This project is for educational and demonstration purposes only. No real money is involved in any gameplay.
